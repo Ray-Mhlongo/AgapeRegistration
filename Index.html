@@ -1,0 +1,1107 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Agapé Membership Registration</title>
+
+<style>
+*{
+box-sizing:border-box;
+}
+
+html,
+body{
+margin:0;
+padding:0;
+width:100%;
+min-height:100%;
+font-family:Arial,sans-serif;
+background:#ffffff;
+color:#111827;
+overflow-x:hidden;
+}
+
+body{
+font-size:18px;
+line-height:1.35;
+}
+
+.app{
+width:100%;
+max-width:100%;
+margin:0;
+padding:18px;
+background:#ffffff;
+}
+
+.header{
+text-align:center;
+padding:10px 0 18px;
+}
+
+.logo{
+width:210px;
+max-width:72vw;
+height:auto;
+display:block;
+margin:0 auto 12px;
+}
+
+h1{
+margin:0;
+font-size:32px;
+line-height:1.12;
+color:#075da8;
+font-weight:900;
+letter-spacing:-.4px;
+}
+
+.tagline{
+margin:10px auto 18px;
+font-size:16px;
+line-height:1.35;
+color:#4b5563;
+max-width:96%;
+}
+
+.step-scroll{
+width:100%;
+overflow-x:auto;
+padding-bottom:10px;
+-webkit-overflow-scrolling:touch;
+}
+
+.step-scroll::-webkit-scrollbar{
+display:none;
+}
+
+.steps{
+display:flex;
+gap:10px;
+min-width:max-content;
+}
+
+.step{
+width:78px;
+text-align:center;
+cursor:pointer;
+flex:0 0 auto;
+}
+
+.step-dot{
+width:46px;
+height:46px;
+border-radius:50%;
+border:2px solid #cbd5e1;
+display:flex;
+align-items:center;
+justify-content:center;
+margin:0 auto 7px;
+font-size:18px;
+font-weight:900;
+background:#ffffff;
+color:#64748b;
+}
+
+.step.active .step-dot,
+.step.done .step-dot{
+background:#075da8;
+border-color:#075da8;
+color:#ffffff;
+}
+
+.step span{
+display:block;
+font-size:13px;
+font-weight:900;
+color:#475569;
+line-height:1.15;
+}
+
+.progress-wrap{
+display:flex;
+align-items:center;
+gap:12px;
+margin:14px 0 8px;
+}
+
+.progress-track{
+height:11px;
+background:#e5e7eb;
+border-radius:30px;
+overflow:hidden;
+flex:1;
+}
+
+.progress-fill{
+height:100%;
+width:17%;
+background:#075da8;
+transition:.2s ease;
+}
+
+.progress-text{
+font-size:15px;
+font-weight:900;
+color:#15803d;
+white-space:nowrap;
+}
+
+#errorBox{
+display:none;
+background:#fee2e2;
+border:1px solid #fecaca;
+color:#991b1b;
+padding:16px;
+border-radius:14px;
+font-size:17px;
+font-weight:900;
+line-height:1.4;
+margin:14px 0;
+}
+
+.form-page{
+display:none;
+padding-top:18px;
+}
+
+.form-page.active{
+display:block;
+}
+
+.step-title{
+font-size:17px;
+font-weight:900;
+margin:0 0 4px;
+color:#111827;
+}
+
+.section-title{
+font-size:32px;
+line-height:1.08;
+font-weight:900;
+color:#075da8;
+margin:0 0 10px;
+letter-spacing:-.3px;
+}
+
+.helper{
+font-size:18px;
+line-height:1.4;
+color:#64748b;
+margin:0 0 24px;
+}
+
+.field{
+display:flex;
+flex-direction:column;
+margin-bottom:22px;
+}
+
+label{
+font-size:18px;
+line-height:1.25;
+font-weight:900;
+margin-bottom:9px;
+color:#111827;
+}
+
+.required{
+color:#dc2626;
+}
+
+input,
+select{
+width:100%;
+min-height:68px;
+padding:19px;
+font-size:19px;
+border:1px solid #d8dee9;
+border-radius:15px;
+background:#ffffff;
+color:#111827;
+appearance:auto;
+}
+
+input:focus,
+select:focus{
+outline:none;
+border-color:#075da8;
+box-shadow:0 0 0 4px rgba(7,93,168,.12);
+}
+
+input[readonly]{
+background:#f1f5f9;
+color:#64748b;
+}
+
+.phone-row{
+display:grid;
+grid-template-columns:96px 1fr;
+gap:10px;
+}
+
+.notice{
+background:#eff6ff;
+border:1px solid #bfdbfe;
+color:#075da8;
+padding:16px;
+border-radius:14px;
+font-size:17px;
+line-height:1.45;
+font-weight:800;
+margin:14px 0;
+}
+
+.duplicate-ok{
+background:#dcfce7;
+border-color:#86efac;
+color:#166534;
+}
+
+.duplicate-bad{
+background:#fee2e2;
+border-color:#fecaca;
+color:#991b1b;
+}
+
+.actions{
+display:flex;
+justify-content:space-between;
+gap:12px;
+margin-top:28px;
+padding-bottom:30px;
+}
+
+button{
+border:none;
+border-radius:15px;
+padding:18px 22px;
+font-size:19px;
+font-weight:900;
+min-height:66px;
+cursor:pointer;
+}
+
+.btn-primary{
+background:#075da8;
+color:white;
+}
+
+.btn-secondary{
+background:#eef2f7;
+color:#075da8;
+}
+
+.btn-success{
+background:#16a34a;
+color:white;
+}
+
+.btn-danger{
+background:#fee2e2;
+color:#991b1b;
+font-size:16px;
+min-height:50px;
+padding:12px 14px;
+}
+
+.child-card{
+background:#f8fafc;
+border:1px solid #e2e8f0;
+border-radius:16px;
+padding:16px;
+margin:16px 0;
+}
+
+.child-head{
+display:flex;
+justify-content:space-between;
+align-items:center;
+gap:12px;
+margin-bottom:14px;
+}
+
+.child-head h3{
+font-size:21px;
+color:#075da8;
+margin:0;
+}
+
+.review-box{
+border:1px solid #e2e8f0;
+border-radius:15px;
+margin:14px 0;
+overflow:hidden;
+}
+
+.review-head{
+background:#f8fafc;
+padding:16px;
+font-size:18px;
+font-weight:900;
+color:#075da8;
+}
+
+.review-body{
+padding:14px 16px;
+}
+
+.review-row{
+display:flex;
+flex-direction:column;
+padding:11px 0;
+border-bottom:1px solid #eef2f7;
+font-size:17px;
+line-height:1.45;
+}
+
+.review-row:last-child{
+border-bottom:none;
+}
+
+.review-row strong{
+font-size:15px;
+color:#64748b;
+margin-bottom:4px;
+}
+
+.consent-box{
+display:flex;
+gap:12px;
+align-items:flex-start;
+margin:18px 0;
+font-size:17px;
+line-height:1.45;
+}
+
+.consent-box input{
+width:24px;
+height:24px;
+min-height:24px;
+margin-top:1px;
+flex:0 0 auto;
+}
+
+.success-screen{
+display:none;
+width:100%;
+min-height:100vh;
+padding:42px 18px;
+text-align:center;
+background:white;
+}
+
+.success-logo{
+width:190px;
+max-width:72vw;
+display:block;
+margin:0 auto 24px;
+}
+
+.check{
+width:96px;
+height:96px;
+border-radius:50%;
+background:#16a34a;
+color:white;
+display:flex;
+align-items:center;
+justify-content:center;
+font-size:56px;
+font-weight:900;
+margin:0 auto 22px;
+}
+
+.success-screen h2{
+font-size:32px;
+line-height:1.25;
+margin:0 0 18px;
+color:#111827;
+}
+
+.family{
+font-size:24px;
+font-weight:900;
+color:#075da8;
+margin:22px 0;
+}
+
+.verse-card{
+background:#fff7ed;
+border:1px solid #fed7aa;
+border-radius:16px;
+padding:22px;
+margin:24px auto 0;
+max-width:480px;
+}
+
+.verse-card h3{
+font-size:19px;
+margin:0 0 14px;
+color:#c2410c;
+}
+
+.verse-text{
+font-size:20px;
+line-height:1.55;
+font-weight:800;
+color:#111827;
+}
+
+.verse-ref{
+margin-top:12px;
+font-size:17px;
+color:#475569;
+font-weight:900;
+}
+
+.footer{
+margin-top:38px;
+font-size:15px;
+color:#64748b;
+}
+
+@media(min-width:700px){
+.app{
+max-width:620px;
+margin:0 auto;
+padding:26px;
+box-shadow:0 8px 30px rgba(0,0,0,.06);
+}
+}
+
+@media(max-width:380px){
+.app{
+padding:16px;
+}
+
+.logo{
+width:190px;
+max-width:72vw;
+}
+
+h1{
+font-size:30px;
+}
+
+.section-title{
+font-size:30px;
+}
+
+input,
+select{
+font-size:18px;
+min-height:66px;
+padding:18px;
+}
+
+button{
+font-size:18px;
+}
+}
+</style>
+</head>
+
+<body>
+
+<div id="mainApp" class="app">
+
+<div class="header">
+<img class="logo" src="https://lh3.googleusercontent.com/d/1Mo9EDR6WanQJ1oD8azG77PUMSKZFCCJX" alt="Agapé Logo">
+
+<h1>Agapé Membership Registration</h1>
+<p class="tagline">A New Day! A New Generation! 'N Nuwe Dag! 'N Nuwe Generasie!</p>
+
+<div class="step-scroll">
+<div class="steps">
+<div class="step active" onclick="goToStep(0)"><div class="step-dot">1</div><span>Personal</span></div>
+<div class="step" onclick="goToStep(1)"><div class="step-dot">2</div><span>Contact</span></div>
+<div class="step" onclick="goToStep(2)"><div class="step-dot">3</div><span>Address</span></div>
+<div class="step" onclick="goToStep(3)"><div class="step-dot">4</div><span>Family</span></div>
+<div class="step" onclick="goToStep(4)"><div class="step-dot">5</div><span>Emergency</span></div>
+<div class="step" onclick="goToStep(5)"><div class="step-dot">6</div><span>Review</span></div>
+</div>
+</div>
+
+<div class="progress-wrap">
+<div class="progress-track">
+<div id="progressFill" class="progress-fill"></div>
+</div>
+<div id="progressText" class="progress-text">17% Complete</div>
+</div>
+</div>
+
+<div id="errorBox"></div>
+
+<form id="memberForm">
+
+<div class="form-page active" data-page="0">
+<p class="step-title">Step 1 of 6</p>
+<h2 class="section-title">Personal Information</h2>
+<p class="helper">Please provide your personal details.</p>
+
+<div class="field">
+<label>First Name <span class="required">*</span></label>
+<input id="firstName" required>
+</div>
+
+<div class="field">
+<label>Middle Name</label>
+<input id="middleName">
+</div>
+
+<div class="field">
+<label>Surname <span class="required">*</span></label>
+<input id="surname" required>
+</div>
+
+<div class="field">
+<label>Gender <span class="required">*</span></label>
+<select id="gender" required>
+<option value="">Select Gender</option>
+<option>Female</option>
+<option>Male</option>
+</select>
+</div>
+
+<div class="field">
+<label>Date Of Birth <span class="required">*</span></label>
+<input type="date" id="dob" required onchange="calculateAge('dob','age')">
+</div>
+
+<div class="field">
+<label>Age</label>
+<input id="age" readonly placeholder="Auto calculated">
+</div>
+
+<div class="field">
+<label>Year Joined Church</label>
+<select id="yearJoined"></select>
+</div>
+
+<div class="actions">
+<span></span>
+<button type="button" class="btn-primary" onclick="nextStep()">Next →</button>
+</div>
+</div>
+
+<div class="form-page" data-page="1">
+<p class="step-title">Step 2 of 6</p>
+<h2 class="section-title">Contact Information</h2>
+<p class="helper">Please provide your contact details.</p>
+
+<div class="field">
+<label>Phone Number <span class="required">*</span></label>
+<div class="phone-row">
+<select><option>+27</option></select>
+<input id="phone" required onblur="checkDuplicate()">
+</div>
+</div>
+
+<div id="duplicateBox" class="notice">We will check if this phone number or email is already registered.</div>
+
+<div class="field">
+<label>Alternative Phone</label>
+<div class="phone-row">
+<select><option>+27</option></select>
+<input id="altPhone">
+</div>
+</div>
+
+<div class="field">
+<label>Email Address</label>
+<input type="email" id="email" onblur="checkDuplicate()">
+</div>
+
+<div class="actions">
+<button type="button" class="btn-secondary" onclick="prevStep()">← Back</button>
+<button type="button" class="btn-primary" onclick="nextStep()">Next →</button>
+</div>
+</div>
+
+<div class="form-page" data-page="2">
+<p class="step-title">Step 3 of 6</p>
+<h2 class="section-title">Address Information</h2>
+<p class="helper">Please provide your address details.</p>
+
+<div class="field">
+<label>House Number <span class="required">*</span></label>
+<input id="houseNumber" required>
+</div>
+
+<div class="field">
+<label>Street Name <span class="required">*</span></label>
+<input id="streetName" required>
+</div>
+
+<div class="field">
+<label>Suburb / Village</label>
+<input id="suburb">
+</div>
+
+<div class="field">
+<label>Town / City <span class="required">*</span></label>
+<input id="town" required>
+</div>
+
+<div class="field">
+<label>Province <span class="required">*</span></label>
+<select id="province" required>
+<option value="">Select Province</option>
+<option>Eastern Cape</option>
+<option>Free State</option>
+<option>Gauteng</option>
+<option>KwaZulu-Natal</option>
+<option>Limpopo</option>
+<option>Mpumalanga</option>
+<option>North West</option>
+<option>Northern Cape</option>
+<option>Western Cape</option>
+</select>
+</div>
+
+<div class="actions">
+<button type="button" class="btn-secondary" onclick="prevStep()">← Back</button>
+<button type="button" class="btn-primary" onclick="nextStep()">Next →</button>
+</div>
+</div>
+
+<div class="form-page" data-page="3">
+<p class="step-title">Step 4 of 6</p>
+<h2 class="section-title">Family Information</h2>
+<p class="helper">Please provide your family details.</p>
+
+<div class="field">
+<label>Marital Status <span class="required">*</span></label>
+<select id="maritalStatus" required onchange="toggleSpouse()">
+<option value="">Select Marital Status</option>
+<option>Married</option>
+<option>Single</option>
+<option>Widowed</option>
+</select>
+</div>
+
+<div id="spouseWrap" style="display:none">
+<div class="notice">Since you selected Married, please provide spouse details.</div>
+
+<div class="field">
+<label>Spouse First Name <span class="required">*</span></label>
+<input id="spouseFirstName">
+</div>
+
+<div class="field">
+<label>Spouse Surname <span class="required">*</span></label>
+<input id="spouseSurname">
+</div>
+
+<div class="field">
+<label>Spouse Phone Number</label>
+<div class="phone-row">
+<select><option>+27</option></select>
+<input id="spousePhone">
+</div>
+</div>
+</div>
+
+<div class="notice">Children: add all children living with you.</div>
+
+<button type="button" class="btn-primary" onclick="addChild()">+ Add Child</button>
+
+<div id="childrenContainer"></div>
+
+<div class="actions">
+<button type="button" class="btn-secondary" onclick="prevStep()">← Back</button>
+<button type="button" class="btn-primary" onclick="nextStep()">Next →</button>
+</div>
+</div>
+
+<div class="form-page" data-page="4">
+<p class="step-title">Step 5 of 6</p>
+<h2 class="section-title">Emergency Contact</h2>
+<p class="helper">Please provide an emergency contact person.</p>
+
+<div class="field">
+<label>Emergency Contact Name <span class="required">*</span></label>
+<input id="contactName" required>
+</div>
+
+<div class="field">
+<label>Relationship <span class="required">*</span></label>
+<select id="relationship" required>
+<option value="">Select Relationship</option>
+<option>Spouse</option>
+<option>Parent</option>
+<option>Sibling</option>
+<option>Child</option>
+<option>Relative</option>
+<option>Friend</option>
+<option>Neighbour</option>
+<option>Colleague</option>
+<option>Guardian</option>
+<option>Other</option>
+</select>
+</div>
+
+<div class="field">
+<label>Contact Number <span class="required">*</span></label>
+<div class="phone-row">
+<select><option>+27</option></select>
+<input id="contactNumber" required>
+</div>
+</div>
+
+<div class="actions">
+<button type="button" class="btn-secondary" onclick="prevStep()">← Back</button>
+<button type="button" class="btn-primary" onclick="nextStep()">Next →</button>
+</div>
+</div>
+
+<div class="form-page" data-page="5">
+<p class="step-title">Step 6 of 6</p>
+<h2 class="section-title">Review & Consent</h2>
+<p class="helper">Review your information before submitting.</p>
+
+<div id="reviewArea"></div>
+
+<div class="review-box">
+<div class="review-head">Welcome to the Family Course</div>
+<div class="review-body">
+<div class="field">
+<label>Have you completed the Welcome to the Family Course? <span class="required">*</span></label>
+<select id="familyCourse" required>
+<option value="">Select Option</option>
+<option>Yes</option>
+<option>No</option>
+</select>
+</div>
+</div>
+</div>
+
+<div class="consent-box">
+<input type="checkbox" id="confirmInfo" required>
+<label for="confirmInfo">I confirm that the information provided is correct to the best of my knowledge.</label>
+</div>
+
+<div class="consent-box">
+<input type="checkbox" id="consentInfo" required>
+<label for="consentInfo">I consent to Agapé Christian Centre storing my information for church administration purposes.</label>
+</div>
+
+<div class="actions">
+<button type="button" class="btn-secondary" onclick="prevStep()">← Back</button>
+<button type="submit" class="btn-success">Submit Registration</button>
+</div>
+</div>
+
+</form>
+</div>
+
+<div id="successScreen" class="success-screen">
+<img class="success-logo" src="https://lh3.googleusercontent.com/d/1Mo9EDR6WanQJ1oD8azG77PUMSKZFCCJX" alt="Agapé Logo">
+<div class="check">✓</div>
+<h2>Thank you<br>for registering with<br>Agapé Christian Centre.</h2>
+<div class="family">Welcome to the Agapé family ❤️</div>
+<div class="verse-card">
+<h3>🎉 Celebration Verse For You</h3>
+<div id="verseText" class="verse-text"></div>
+<div id="verseRef" class="verse-ref"></div>
+</div>
+<div class="footer">© Agapé Christian Centre</div>
+</div>
+
+<script>
+let currentStep = 0;
+let children = [];
+let duplicateFound = false;
+
+const celebrationVerses = [
+{text:"This is the day the Lord has made; we will rejoice and be glad in it.",ref:"Psalm 118:24"},
+{text:"The Lord has done great things for us, and we are filled with joy.",ref:"Psalm 126:3"},
+{text:"Rejoice in the Lord always. I will say it again: Rejoice!",ref:"Philippians 4:4"},
+{text:"May the God of hope fill you with all joy and peace as you trust in him.",ref:"Romans 15:13"},
+{text:"You crown the year with your goodness, and your paths overflow with abundance.",ref:"Psalm 65:11"},
+{text:"Give thanks to the Lord, for he is good; his love endures forever.",ref:"Psalm 107:1"},
+{text:"The joy of the Lord is your strength.",ref:"Nehemiah 8:10"}
+];
+
+function setupYears(){
+const select = document.getElementById("yearJoined");
+const year = new Date().getFullYear();
+select.innerHTML = '<option value="">Select Year</option>';
+for(let y = year; y >= 1950; y--){
+select.innerHTML += '<option>' + y + '</option>';
+}
+}
+
+function showError(message){
+const box = document.getElementById("errorBox");
+box.innerText = message;
+box.style.display = "block";
+window.scrollTo({top:0,behavior:"smooth"});
+}
+
+function clearError(){
+const box = document.getElementById("errorBox");
+box.style.display = "none";
+box.innerText = "";
+}
+
+function updateUI(){
+document.querySelectorAll(".form-page").forEach(function(page,index){
+page.classList.toggle("active",index === currentStep);
+});
+
+document.querySelectorAll(".step").forEach(function(step,index){
+step.classList.toggle("active",index === currentStep);
+step.classList.toggle("done",index < currentStep);
+});
+
+const percent = Math.round(((currentStep + 1) / 6) * 100);
+document.getElementById("progressFill").style.width = percent + "%";
+document.getElementById("progressText").innerText = percent + "% Complete";
+
+if(currentStep === 5){
+buildReview();
+}
+}
+
+function validateStep(step){
+clearError();
+
+const page = document.querySelector('.form-page[data-page="' + step + '"]');
+const required = page.querySelectorAll("[required]");
+
+for(const field of required){
+if(!field.value && field.type !== "checkbox"){
+field.focus();
+showError("Please complete all compulsory fields.");
+return false;
+}
+
+if(field.type === "checkbox" && !field.checked){
+field.focus();
+showError("Please tick the required consent checkbox.");
+return false;
+}
+}
+
+if(step === 1 && duplicateFound){
+showError("This phone number or email is already registered. Please check the details or contact the church office.");
+return false;
+}
+
+if(step === 3 && document.getElementById("maritalStatus").value === "Married"){
+if(!document.getElementById("spouseFirstName").value || !document.getElementById("spouseSurname").value){
+showError("Please complete spouse first name and surname.");
+return false;
+}
+}
+
+return true;
+}
+
+function nextStep(){
+if(!validateStep(currentStep)){return;}
+if(currentStep < 5){
+currentStep++;
+updateUI();
+window.scrollTo({top:0,behavior:"smooth"});
+}
+}
+
+function prevStep(){
+if(currentStep > 0){
+currentStep--;
+updateUI();
+window.scrollTo({top:0,behavior:"smooth"});
+}
+}
+
+function goToStep(step){
+if(step <= currentStep){
+currentStep = step;
+updateUI();
+}
+}
+
+function calculateAge(dobId,ageId){
+const dob = document.getElementById(dobId).value;
+if(!dob){return;}
+const birth = new Date(dob);
+const today = new Date();
+let age = today.getFullYear() - birth.getFullYear();
+const m = today.getMonth() - birth.getMonth();
+if(m < 0 || (m === 0 && today.getDate() < birth.getDate())){age--;}
+document.getElementById(ageId).value = age;
+}
+
+function toggleSpouse(){
+const married = document.getElementById("maritalStatus").value === "Married";
+document.getElementById("spouseWrap").style.display = married ? "block" : "none";
+}
+
+function addChild(){
+const index = children.length;
+children.push({});
+const html =
+'<div class="child-card" id="childCard' + index + '">' +
+'<div class="child-head"><h3>Child ' + (index + 1) + '</h3><button type="button" class="btn-danger" onclick="removeChild(' + index + ')">Remove</button></div>' +
+'<div class="field"><label>First Name</label><input oninput="children[' + index + '].firstName=this.value"></div>' +
+'<div class="field"><label>Surname</label><input oninput="children[' + index + '].surname=this.value"></div>' +
+'<div class="field"><label>Date Of Birth</label><input type="date" id="childDob' + index + '" onchange="calculateChildAge(' + index + ')"></div>' +
+'<div class="field"><label>Age</label><input id="childAge' + index + '" readonly placeholder="Auto calculated"></div>' +
+'<div class="field"><label>Gender</label><select oninput="children[' + index + '].gender=this.value"><option value="">Select Gender</option><option>Female</option><option>Male</option></select></div>' +
+'</div>';
+document.getElementById("childrenContainer").insertAdjacentHTML("beforeend",html);
+}
+
+function calculateChildAge(index){
+const dob = document.getElementById("childDob" + index).value;
+children[index].dob = dob;
+const birth = new Date(dob);
+const today = new Date();
+let age = today.getFullYear() - birth.getFullYear();
+const m = today.getMonth() - birth.getMonth();
+if(m < 0 || (m === 0 && today.getDate() < birth.getDate())){age--;}
+children[index].age = age;
+document.getElementById("childAge" + index).value = age;
+}
+
+function removeChild(index){
+children[index] = null;
+const card = document.getElementById("childCard" + index);
+if(card){card.remove();}
+}
+
+function valueOf(id){
+const el = document.getElementById(id);
+return el ? el.value : "";
+}
+
+function reviewRow(label,value){
+return '<div class="review-row"><strong>' + label + '</strong><span>' + (value || "Not provided") + '</span></div>';
+}
+
+function buildReview(){
+const validChildren = children.filter(function(child){return child;});
+let childHtml = "";
+
+if(validChildren.length){
+validChildren.forEach(function(child,index){
+childHtml += reviewRow("Child " + (index + 1), (child.firstName || "") + " " + (child.surname || "") + ", " + (child.age || "") + " years");
+});
+}else{
+childHtml = reviewRow("Children","No children added");
+}
+
+document.getElementById("reviewArea").innerHTML =
+'<div class="review-box"><div class="review-head">Personal Information</div><div class="review-body">' +
+reviewRow("Name",valueOf("firstName") + " " + valueOf("middleName") + " " + valueOf("surname")) +
+reviewRow("Gender",valueOf("gender")) +
+reviewRow("Date Of Birth",valueOf("dob")) +
+reviewRow("Age",valueOf("age")) +
+reviewRow("Year Joined",valueOf("yearJoined")) +
+'</div></div>' +
+'<div class="review-box"><div class="review-head">Contact Information</div><div class="review-body">' +
+reviewRow("Phone",valueOf("phone")) +
+reviewRow("Alternative Phone",valueOf("altPhone")) +
+reviewRow("Email",valueOf("email")) +
+'</div></div>' +
+'<div class="review-box"><div class="review-head">Address Information</div><div class="review-body">' +
+reviewRow("Address",valueOf("houseNumber") + " " + valueOf("streetName") + ", " + valueOf("suburb") + ", " + valueOf("town") + ", " + valueOf("province")) +
+'</div></div>' +
+'<div class="review-box"><div class="review-head">Family Information</div><div class="review-body">' +
+reviewRow("Marital Status",valueOf("maritalStatus")) +
+reviewRow("Spouse",valueOf("spouseFirstName") + " " + valueOf("spouseSurname")) +
+childHtml +
+'</div></div>' +
+'<div class="review-box"><div class="review-head">Emergency Contact</div><div class="review-body">' +
+reviewRow("Name",valueOf("contactName")) +
+reviewRow("Relationship",valueOf("relationship")) +
+reviewRow("Number",valueOf("contactNumber")) +
+'</div></div>';
+}
+
+function checkDuplicate(){
+const phone = valueOf("phone");
+const email = valueOf("email");
+const box = document.getElementById("duplicateBox");
+
+duplicateFound = false;
+
+if(!phone && !email){
+box.className = "notice";
+box.innerText = "We will check if this phone number or email is already registered.";
+return;
+}
+
+box.className = "notice duplicate-ok";
+box.innerText = "Details captured. Final duplicate control can be handled by the church office records.";
+}
+
+function showSuccess(){
+const verse = celebrationVerses[Math.floor(Math.random() * celebrationVerses.length)];
+document.getElementById("verseText").innerText = "“" + verse.text + "”";
+document.getElementById("verseRef").innerText = "— " + verse.ref;
+document.getElementById("mainApp").style.display = "none";
+document.getElementById("successScreen").style.display = "block";
+window.scrollTo({top:0,behavior:"smooth"});
+}
+
+document.getElementById("memberForm").addEventListener("submit",function(e){
+e.preventDefault();
+
+if(!validateStep(5)){return;}
+
+const payload = {
+firstName:valueOf("firstName"),
+middleName:valueOf("middleName"),
+surname:valueOf("surname"),
+gender:valueOf("gender"),
+dob:valueOf("dob"),
+phone:valueOf("phone"),
+altPhone:valueOf("altPhone"),
+email:valueOf("email"),
+houseNumber:valueOf("houseNumber"),
+streetName:valueOf("streetName"),
+suburb:valueOf("suburb"),
+town:valueOf("town"),
+province:valueOf("province"),
+maritalStatus:valueOf("maritalStatus"),
+dateJoined:valueOf("yearJoined"),
+baptized:"",
+department:"Main Church",
+welcomeCourse:valueOf("familyCourse"),
+spouseFirstName:valueOf("spouseFirstName"),
+spouseSurname:valueOf("spouseSurname"),
+spousePhone:valueOf("spousePhone"),
+contactName:valueOf("contactName"),
+relationship:valueOf("relationship"),
+contactNumber:valueOf("contactNumber"),
+children:children.filter(function(child){return child;})
+};
+
+fetch("https://script.google.com/macros/s/AKfycbwQexh5URSlABvqMV18Vo6dm4Yo9gAMQmT6GqK7hdwGkd9TU2_n50vRDGSMLCInPw8/exec", {
+method:"POST",
+mode:"no-cors",
+headers:{
+"Content-Type":"text/plain;charset=utf-8"
+},
+body:JSON.stringify(payload)
+})
+.then(function(){
+showSuccess();
+})
+.catch(function(error){
+showError("Something went wrong while submitting. Please check your connection and try again.");
+});
+});
+
+setupYears();
+updateUI();
+</script>
+
+</body>
+</html>
