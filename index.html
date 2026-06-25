@@ -577,6 +577,11 @@ font-size:18px;
 </div>
 
 <div class="field">
+<label>Nationality</label>
+<input id="nationality" placeholder="Example: South African">
+</div>
+
+<div class="field">
 <label>Year Joined Church</label>
 <select id="yearJoined"></select>
 </div>
@@ -675,12 +680,19 @@ font-size:18px;
 
 <div class="field">
 <label>Marital Status <span class="required">*</span></label>
-<select id="maritalStatus" required onchange="toggleSpouse()">
+<select id="maritalStatus" required onchange="handleMaritalStatusChange()">
 <option value="">Select Marital Status</option>
-<option>Married</option>
 <option>Single</option>
-<option>Widowed</option>
+<option>Married</option>
+<option>Other</option>
 </select>
+</div>
+
+<div id="maritalOtherWrap" style="display:none">
+<div class="field">
+<label>Specify Marital Status</label>
+<input id="maritalOther" placeholder="Optional">
+</div>
 </div>
 
 <div id="spouseWrap" style="display:none">
@@ -937,24 +949,112 @@ if(m < 0 || (m === 0 && today.getDate() < birth.getDate())){age--;}
 document.getElementById(ageId).value = age;
 }
 
+function handleMaritalStatusChange(){
+
+const status =
+document.getElementById("maritalStatus").value;
+
+const married =
+status === "Married";
+
+const other =
+status === "Other";
+
+document.getElementById("spouseWrap").style.display =
+married ? "block" : "none";
+
+document.getElementById("maritalOtherWrap").style.display =
+other ? "block" : "none";
+
+}
+
 function toggleSpouse(){
-const married = document.getElementById("maritalStatus").value === "Married";
-document.getElementById("spouseWrap").style.display = married ? "block" : "none";
+handleMaritalStatusChange();
 }
 
 function addChild(){
-const index = children.length;
-children.push({});
-const html =
+
+children.push({
+firstName:"",
+surname:"",
+dob:"",
+age:"",
+gender:""
+});
+
+renderChildren();
+
+}
+
+function removeChildCard(index){
+
+children.splice(index,1);
+
+renderChildren();
+
+}
+
+function renderChildren(){
+
+const container =
+document.getElementById("childrenContainer");
+
+container.innerHTML = "";
+
+children.forEach(function(child,index){
+
+container.innerHTML +=
 '<div class="child-card" id="childCard' + index + '">' +
-'<div class="child-head"><h3>Child ' + (index + 1) + '</h3><button type="button" class="btn-danger" onclick="removeChild(' + index + ')">Remove</button></div>' +
-'<div class="field"><label>First Name</label><input oninput="children[' + index + '].firstName=this.value"></div>' +
-'<div class="field"><label>Surname</label><input oninput="children[' + index + '].surname=this.value"></div>' +
-'<div class="field"><label>Date Of Birth</label><input type="date" id="childDob' + index + '" onchange="calculateChildAge(' + index + ')"></div>' +
-'<div class="field"><label>Age</label><input id="childAge' + index + '" readonly placeholder="Auto calculated"></div>' +
-'<div class="field"><label>Gender</label><select oninput="children[' + index + '].gender=this.value"><option value="">Select Gender</option><option>Female</option><option>Male</option></select></div>' +
+
+'<div class="child-head">' +
+'<h3>Child ' + (index + 1) + '</h3>' +
+'<button type="button" class="btn-danger" onclick="removeChildCard(' + index + ')">Remove</button>' +
+'</div>' +
+
+'<div class="field">' +
+'<label>First Name</label>' +
+'<input value="' + escapeHtml(child.firstName || "") + '" oninput="children[' + index + '].firstName=this.value">' +
+'</div>' +
+
+'<div class="field">' +
+'<label>Surname</label>' +
+'<input value="' + escapeHtml(child.surname || "") + '" oninput="children[' + index + '].surname=this.value">' +
+'</div>' +
+
+'<div class="field">' +
+'<label>Date Of Birth</label>' +
+'<input type="date" id="childDob' + index + '" value="' + escapeHtml(child.dob || "") + '" onchange="calculateChildAge(' + index + ')">' +
+'</div>' +
+
+'<div class="field">' +
+'<label>Age</label>' +
+'<input id="childAge' + index + '" value="' + escapeHtml(String(child.age || "")) + '" readonly placeholder="Auto calculated">' +
+'</div>' +
+
+'<div class="field">' +
+'<label>Gender</label>' +
+'<select onchange="children[' + index + '].gender=this.value">' +
+'<option value="">Select Gender</option>' +
+'<option value="Female" ' + (child.gender === "Female" ? "selected" : "") + '>Female</option>' +
+'<option value="Male" ' + (child.gender === "Male" ? "selected" : "") + '>Male</option>' +
+'</select>' +
+'</div>' +
+
 '</div>';
-document.getElementById("childrenContainer").insertAdjacentHTML("beforeend",html);
+
+});
+
+}
+
+function escapeHtml(value){
+
+return String(value)
+.replace(/&/g,"&amp;")
+.replace(/</g,"&lt;")
+.replace(/>/g,"&gt;")
+.replace(/"/g,"&quot;")
+.replace(/'/g,"&#039;");
+
 }
 
 function calculateChildAge(index){
@@ -967,12 +1067,6 @@ const m = today.getMonth() - birth.getMonth();
 if(m < 0 || (m === 0 && today.getDate() < birth.getDate())){age--;}
 children[index].age = age;
 document.getElementById("childAge" + index).value = age;
-}
-
-function removeChild(index){
-children[index] = null;
-const card = document.getElementById("childCard" + index);
-if(card){card.remove();}
 }
 
 function valueOf(id){
@@ -1002,6 +1096,7 @@ reviewRow("Name",valueOf("firstName") + " " + valueOf("middleName") + " " + valu
 reviewRow("Gender",valueOf("gender")) +
 reviewRow("Date Of Birth",valueOf("dob")) +
 reviewRow("Age",valueOf("age")) +
+reviewRow("Nationality",valueOf("nationality")) +
 reviewRow("Year Joined",valueOf("yearJoined")) +
 '</div></div>' +
 '<div class="review-box"><div class="review-head">Contact Information</div><div class="review-body">' +
@@ -1014,6 +1109,7 @@ reviewRow("Address",valueOf("houseNumber") + " " + valueOf("streetName") + ", " 
 '</div></div>' +
 '<div class="review-box"><div class="review-head">Family Information</div><div class="review-body">' +
 reviewRow("Marital Status",valueOf("maritalStatus")) +
+reviewRow("Specify Marital Status",valueOf("maritalOther")) +
 reviewRow("Spouse",valueOf("spouseFirstName") + " " + valueOf("spouseSurname")) +
 childHtml +
 '</div></div>' +
@@ -1061,6 +1157,7 @@ middleName:valueOf("middleName"),
 surname:valueOf("surname"),
 gender:valueOf("gender"),
 dob:valueOf("dob"),
+nationality:valueOf("nationality"),
 phone:valueOf("phone"),
 altPhone:valueOf("altPhone"),
 email:valueOf("email"),
@@ -1070,6 +1167,7 @@ suburb:valueOf("suburb"),
 town:valueOf("town"),
 province:valueOf("province"),
 maritalStatus:valueOf("maritalStatus"),
+maritalOther:valueOf("maritalOther"),
 dateJoined:valueOf("yearJoined"),
 baptized:"",
 department:"Main Church",
@@ -1100,6 +1198,7 @@ showError("Something went wrong while submitting. Please check your connection a
 });
 
 setupYears();
+handleMaritalStatusChange();
 updateUI();
 </script>
 
