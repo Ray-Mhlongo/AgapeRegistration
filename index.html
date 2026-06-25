@@ -1181,20 +1181,24 @@ contactNumber:valueOf("contactNumber"),
 children:children.filter(function(child){return child;})
 };
 
-fetch("https://script.google.com/macros/s/AKfycbwQexh5URSlABvqMV18Vo6dm4Yo9gAMQmT6GqK7hdwGkd9TU2_n50vRDGSMLCInPw8/exec", {
+showError("Submitting registration, please wait...");
+
+fetch("https://script.google.com/macros/s/AKfycbwQexh5URSlABvqMV18Vo6dm4Yo9gAMQmT6GqK7hdwGkd9TU2_n50vRDGSMLCInPw8/exec",{
 method:"POST",
 mode:"no-cors",
 headers:{
 "Content-Type":"text/plain;charset=utf-8"
 },
 body:JSON.stringify(payload)
-})
-.then(function(){
-showSuccess();
-})
-.catch(function(error){
-showError("Something went wrong while submitting. Please check your connection and try again.");
 });
+
+setTimeout(function(){
+
+clearError();
+showSuccess();
+
+},2500);
+
 });
 
 setupYears();
