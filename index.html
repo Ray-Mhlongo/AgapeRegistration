@@ -1098,6 +1098,7 @@ reviewRow("Date Of Birth",valueOf("dob")) +
 reviewRow("Age",valueOf("age")) +
 reviewRow("Nationality",valueOf("nationality")) +
 reviewRow("Year Joined",valueOf("yearJoined")) +
+reviewRow("Membership Status",valueOf("familyCourse") === "Yes" ? "Member" : valueOf("familyCourse") === "No" ? "Visitor" : "") +
 '</div></div>' +
 '<div class="review-box"><div class="review-head">Contact Information</div><div class="review-body">' +
 reviewRow("Phone",valueOf("phone")) +
@@ -1172,6 +1173,7 @@ dateJoined:valueOf("yearJoined"),
 baptized:"",
 department:"Main Church",
 welcomeCourse:valueOf("familyCourse"),
+membershipStatus:valueOf("familyCourse"),
 spouseFirstName:valueOf("spouseFirstName"),
 spouseSurname:valueOf("spouseSurname"),
 spousePhone:valueOf("spousePhone"),
