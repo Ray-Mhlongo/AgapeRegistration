@@ -242,6 +242,20 @@ grid-template-columns:96px 1fr;
 gap:10px;
 }
 
+.date-select-row{
+display:grid;
+grid-template-columns:1fr 1fr 1fr;
+gap:10px;
+}
+
+.field-hint{
+font-size:15px;
+line-height:1.35;
+color:#64748b;
+margin-top:7px;
+font-weight:700;
+}
+
 .notice{
 background:#eff6ff;
 border:1px solid #bfdbfe;
@@ -512,7 +526,7 @@ font-size:18px;
 <img class="logo" src="https://lh3.googleusercontent.com/d/1Mo9EDR6WanQJ1oD8azG77PUMSKZFCCJX" alt="Agapé Logo">
 
 <h1>Agapé Membership Registration</h1>
-<p class="tagline">A New Day! A New Generation! 'N Nuwe Dag! 'N Nuwe Generasie!</p>
+<p class="tagline">Please complete your membership details below.</p>
 
 <div class="step-scroll">
 <div class="steps">
@@ -544,17 +558,17 @@ font-size:18px;
 
 <div class="field">
 <label>First Name <span class="required">*</span></label>
-<input id="firstName" required>
+<input id="firstName" required placeholder="Example: Thabo">
 </div>
 
 <div class="field">
 <label>Middle Name</label>
-<input id="middleName">
+<input id="middleName" placeholder="Example: Sipho">
 </div>
 
 <div class="field">
 <label>Surname <span class="required">*</span></label>
-<input id="surname" required>
+<input id="surname" required placeholder="Example: Mokoena">
 </div>
 
 <div class="field">
@@ -568,7 +582,13 @@ font-size:18px;
 
 <div class="field">
 <label>Date Of Birth <span class="required">*</span></label>
-<input type="date" id="dob" required onchange="calculateAge('dob','age')">
+<div class="date-select-row">
+<select id="dobYear" required onchange="updateDobFromSelects('dob','age')"></select>
+<select id="dobMonth" required onchange="updateDobFromSelects('dob','age')"></select>
+<select id="dobDay" required onchange="updateDobFromSelects('dob','age')"></select>
+</div>
+<input type="hidden" id="dob" required>
+<div class="field-hint">Select year, month and day.</div>
 </div>
 
 <div class="field">
@@ -588,7 +608,7 @@ font-size:18px;
 
 <div class="actions">
 <span></span>
-<button type="button" class="btn-primary" onclick="nextStep()">Next →</button>
+<button type="button" class="btn-primary" onclick="nextStep()">Next</button>
 </div>
 </div>
 
@@ -601,8 +621,9 @@ font-size:18px;
 <label>Phone Number <span class="required">*</span></label>
 <div class="phone-row">
 <select><option>+27</option></select>
-<input id="phone" required onblur="checkDuplicate()">
+<input id="phone" required inputmode="numeric" placeholder="Example: 82 123 4567" oninput="cleanPhone(this)" onblur="checkDuplicate()">
 </div>
+<div class="field-hint">Do not enter the first 0. Example: 82 123 4567.</div>
 </div>
 
 <div id="duplicateBox" class="notice">We will check if this phone number or email is already registered.</div>
@@ -611,18 +632,19 @@ font-size:18px;
 <label>Alternative Phone</label>
 <div class="phone-row">
 <select><option>+27</option></select>
-<input id="altPhone">
+<input id="altPhone" inputmode="numeric" placeholder="Example: 83 123 4567" oninput="cleanPhone(this)">
 </div>
+<div class="field-hint">Do not enter the first 0.</div>
 </div>
 
 <div class="field">
 <label>Email Address</label>
-<input type="email" id="email" onblur="checkDuplicate()">
+<input type="email" id="email" placeholder="Example: name@gmail.com" onblur="checkDuplicate()">
 </div>
 
 <div class="actions">
-<button type="button" class="btn-secondary" onclick="prevStep()">← Back</button>
-<button type="button" class="btn-primary" onclick="nextStep()">Next →</button>
+<button type="button" class="btn-secondary" onclick="prevStep()">Back</button>
+<button type="button" class="btn-primary" onclick="nextStep()">Next</button>
 </div>
 </div>
 
@@ -633,22 +655,22 @@ font-size:18px;
 
 <div class="field">
 <label>House Number <span class="required">*</span></label>
-<input id="houseNumber" required>
+<input id="houseNumber" required placeholder="Example: 25">
 </div>
 
 <div class="field">
 <label>Street Name <span class="required">*</span></label>
-<input id="streetName" required>
+<input id="streetName" required placeholder="Example: Church Street">
 </div>
 
 <div class="field">
 <label>Suburb / Village</label>
-<input id="suburb">
+<input id="suburb" placeholder="Example: New Town or Tshikota">
 </div>
 
 <div class="field">
 <label>Town / City <span class="required">*</span></label>
-<input id="town" required>
+<input id="town" required placeholder="Example: Louis Trichardt">
 </div>
 
 <div class="field">
@@ -658,7 +680,7 @@ font-size:18px;
 <option>Eastern Cape</option>
 <option>Free State</option>
 <option>Gauteng</option>
-<option>KwaZulu-Natal</option>
+<option>KwaZulu Natal</option>
 <option>Limpopo</option>
 <option>Mpumalanga</option>
 <option>North West</option>
@@ -668,8 +690,8 @@ font-size:18px;
 </div>
 
 <div class="actions">
-<button type="button" class="btn-secondary" onclick="prevStep()">← Back</button>
-<button type="button" class="btn-primary" onclick="nextStep()">Next →</button>
+<button type="button" class="btn-secondary" onclick="prevStep()">Back</button>
+<button type="button" class="btn-primary" onclick="nextStep()">Next</button>
 </div>
 </div>
 
@@ -691,7 +713,7 @@ font-size:18px;
 <div id="maritalOtherWrap" style="display:none">
 <div class="field">
 <label>Specify Marital Status</label>
-<input id="maritalOther" placeholder="Optional">
+<input id="maritalOther" placeholder="Example: Widowed">
 </div>
 </div>
 
@@ -700,32 +722,33 @@ font-size:18px;
 
 <div class="field">
 <label>Spouse First Name <span class="required">*</span></label>
-<input id="spouseFirstName">
+<input id="spouseFirstName" placeholder="Example: Lerato">
 </div>
 
 <div class="field">
 <label>Spouse Surname <span class="required">*</span></label>
-<input id="spouseSurname">
+<input id="spouseSurname" placeholder="Example: Mokoena">
 </div>
 
 <div class="field">
 <label>Spouse Phone Number</label>
 <div class="phone-row">
 <select><option>+27</option></select>
-<input id="spousePhone">
+<input id="spousePhone" inputmode="numeric" placeholder="Example: 82 123 4567" oninput="cleanPhone(this)">
 </div>
+<div class="field-hint">Do not enter the first 0.</div>
 </div>
 </div>
 
 <div class="notice">Children: add all children living with you.</div>
 
-<button type="button" class="btn-primary" onclick="addChild()">+ Add Child</button>
+<button type="button" class="btn-primary" onclick="addChild()">Add Child</button>
 
 <div id="childrenContainer"></div>
 
 <div class="actions">
-<button type="button" class="btn-secondary" onclick="prevStep()">← Back</button>
-<button type="button" class="btn-primary" onclick="nextStep()">Next →</button>
+<button type="button" class="btn-secondary" onclick="prevStep()">Back</button>
+<button type="button" class="btn-primary" onclick="nextStep()">Next</button>
 </div>
 </div>
 
@@ -736,7 +759,7 @@ font-size:18px;
 
 <div class="field">
 <label>Emergency Contact Name <span class="required">*</span></label>
-<input id="contactName" required>
+<input id="contactName" required placeholder="Example: Maria Mokoena">
 </div>
 
 <div class="field">
@@ -760,19 +783,20 @@ font-size:18px;
 <label>Contact Number <span class="required">*</span></label>
 <div class="phone-row">
 <select><option>+27</option></select>
-<input id="contactNumber" required>
+<input id="contactNumber" required inputmode="numeric" placeholder="Example: 82 123 4567" oninput="cleanPhone(this)">
 </div>
+<div class="field-hint">Do not enter the first 0.</div>
 </div>
 
 <div class="actions">
-<button type="button" class="btn-secondary" onclick="prevStep()">← Back</button>
-<button type="button" class="btn-primary" onclick="nextStep()">Next →</button>
+<button type="button" class="btn-secondary" onclick="prevStep()">Back</button>
+<button type="button" class="btn-primary" onclick="nextStep()">Next</button>
 </div>
 </div>
 
 <div class="form-page" data-page="5">
 <p class="step-title">Step 6 of 6</p>
-<h2 class="section-title">Review & Consent</h2>
+<h2 class="section-title">Review and Consent</h2>
 <p class="helper">Review your information before submitting.</p>
 
 <div id="reviewArea"></div>
@@ -781,7 +805,7 @@ font-size:18px;
 <div class="review-head">Welcome to the Family Course</div>
 <div class="review-body">
 <div class="field">
-<label>Did we receive you as a member of Agape (received certificate) ? <span class="required">*</span></label>
+<label>Did we receive you as a member of Agapé with a certificate? <span class="required">*</span></label>
 <select id="familyCourse" required>
 <option value="">Select Option</option>
 <option>Yes</option>
@@ -802,7 +826,7 @@ font-size:18px;
 </div>
 
 <div class="actions">
-<button type="button" class="btn-secondary" onclick="prevStep()">← Back</button>
+<button type="button" class="btn-secondary" onclick="prevStep()">Back</button>
 <button type="submit" class="btn-success">Submit Registration</button>
 </div>
 </div>
@@ -845,6 +869,64 @@ select.innerHTML = '<option value="">Select Year</option>';
 for(let y = year; y >= 1950; y--){
 select.innerHTML += '<option>' + y + '</option>';
 }
+}
+
+function setupDobPicker(){
+const yearSelect = document.getElementById("dobYear");
+const monthSelect = document.getElementById("dobMonth");
+const daySelect = document.getElementById("dobDay");
+const currentYear = new Date().getFullYear();
+
+yearSelect.innerHTML = '<option value="">Year</option>';
+monthSelect.innerHTML = '<option value="">Month</option>';
+daySelect.innerHTML = '<option value="">Day</option>';
+
+for(let y = currentYear; y >= 1900; y--){
+yearSelect.innerHTML += '<option value="' + y + '">' + y + '</option>';
+}
+
+const months = [
+"January","February","March","April","May","June",
+"July","August","September","October","November","December"
+];
+
+months.forEach(function(month,index){
+const value = String(index + 1).padStart(2,"0");
+monthSelect.innerHTML += '<option value="' + value + '">' + month + '</option>';
+});
+
+for(let d = 1; d <= 31; d++){
+const value = String(d).padStart(2,"0");
+daySelect.innerHTML += '<option value="' + value + '">' + d + '</option>';
+}
+}
+
+function updateDobFromSelects(dobId,ageId){
+const year = document.getElementById("dobYear").value;
+const month = document.getElementById("dobMonth").value;
+const day = document.getElementById("dobDay").value;
+
+if(!year || !month || !day){
+document.getElementById(dobId).value = "";
+return;
+}
+
+document.getElementById(dobId).value = year + "-" + month + "-" + day;
+calculateAge(dobId,ageId);
+}
+
+function cleanPhone(input){
+let value = input.value.replace(/\D/g,"");
+
+if(value.startsWith("27")){
+value = value.slice(2);
+}
+
+if(value.startsWith("0")){
+value = value.slice(1);
+}
+
+input.value = value;
 }
 
 function showError(message){
@@ -950,30 +1032,14 @@ document.getElementById(ageId).value = age;
 }
 
 function handleMaritalStatusChange(){
-
-const status =
-document.getElementById("maritalStatus").value;
-
-const married =
-status === "Married";
-
-const other =
-status === "Other";
-
-document.getElementById("spouseWrap").style.display =
-married ? "block" : "none";
-
-document.getElementById("maritalOtherWrap").style.display =
-other ? "block" : "none";
-
-}
-
-function toggleSpouse(){
-handleMaritalStatusChange();
+const status = document.getElementById("maritalStatus").value;
+const married = status === "Married";
+const other = status === "Other";
+document.getElementById("spouseWrap").style.display = married ? "block" : "none";
+document.getElementById("maritalOtherWrap").style.display = other ? "block" : "none";
 }
 
 function addChild(){
-
 children.push({
 firstName:"",
 surname:"",
@@ -983,54 +1049,40 @@ gender:""
 });
 
 renderChildren();
-
 }
 
 function removeChildCard(index){
-
 children.splice(index,1);
-
 renderChildren();
-
 }
 
 function renderChildren(){
-
-const container =
-document.getElementById("childrenContainer");
-
+const container = document.getElementById("childrenContainer");
 container.innerHTML = "";
 
 children.forEach(function(child,index){
-
 container.innerHTML +=
 '<div class="child-card" id="childCard' + index + '">' +
-
 '<div class="child-head">' +
 '<h3>Child ' + (index + 1) + '</h3>' +
 '<button type="button" class="btn-danger" onclick="removeChildCard(' + index + ')">Remove</button>' +
 '</div>' +
-
 '<div class="field">' +
 '<label>First Name</label>' +
-'<input value="' + escapeHtml(child.firstName || "") + '" oninput="children[' + index + '].firstName=this.value">' +
+'<input placeholder="Example: Naledi" value="' + escapeHtml(child.firstName || "") + '" oninput="children[' + index + '].firstName=this.value">' +
 '</div>' +
-
 '<div class="field">' +
 '<label>Surname</label>' +
-'<input value="' + escapeHtml(child.surname || "") + '" oninput="children[' + index + '].surname=this.value">' +
+'<input placeholder="Example: Mokoena" value="' + escapeHtml(child.surname || "") + '" oninput="children[' + index + '].surname=this.value">' +
 '</div>' +
-
 '<div class="field">' +
 '<label>Date Of Birth</label>' +
 '<input type="date" id="childDob' + index + '" value="' + escapeHtml(child.dob || "") + '" onchange="calculateChildAge(' + index + ')">' +
 '</div>' +
-
 '<div class="field">' +
 '<label>Age</label>' +
 '<input id="childAge' + index + '" value="' + escapeHtml(String(child.age || "")) + '" readonly placeholder="Auto calculated">' +
 '</div>' +
-
 '<div class="field">' +
 '<label>Gender</label>' +
 '<select onchange="children[' + index + '].gender=this.value">' +
@@ -1039,22 +1091,17 @@ container.innerHTML +=
 '<option value="Male" ' + (child.gender === "Male" ? "selected" : "") + '>Male</option>' +
 '</select>' +
 '</div>' +
-
 '</div>';
-
 });
-
 }
 
 function escapeHtml(value){
-
 return String(value)
 .replace(/&/g,"&amp;")
 .replace(/</g,"&lt;")
 .replace(/>/g,"&gt;")
 .replace(/"/g,"&quot;")
 .replace(/'/g,"&#039;");
-
 }
 
 function calculateChildAge(index){
@@ -1072,6 +1119,11 @@ document.getElementById("childAge" + index).value = age;
 function valueOf(id){
 const el = document.getElementById(id);
 return el ? el.value : "";
+}
+
+function phoneValue(id){
+const value = valueOf(id);
+return value ? "+27" + value : "";
 }
 
 function reviewRow(label,value){
@@ -1101,8 +1153,8 @@ reviewRow("Year Joined",valueOf("yearJoined")) +
 reviewRow("Membership Status",valueOf("familyCourse") === "Yes" ? "Member" : valueOf("familyCourse") === "No" ? "Visitor" : "") +
 '</div></div>' +
 '<div class="review-box"><div class="review-head">Contact Information</div><div class="review-body">' +
-reviewRow("Phone",valueOf("phone")) +
-reviewRow("Alternative Phone",valueOf("altPhone")) +
+reviewRow("Phone",phoneValue("phone")) +
+reviewRow("Alternative Phone",phoneValue("altPhone")) +
 reviewRow("Email",valueOf("email")) +
 '</div></div>' +
 '<div class="review-box"><div class="review-head">Address Information</div><div class="review-body">' +
@@ -1112,12 +1164,13 @@ reviewRow("Address",valueOf("houseNumber") + " " + valueOf("streetName") + ", " 
 reviewRow("Marital Status",valueOf("maritalStatus")) +
 reviewRow("Specify Marital Status",valueOf("maritalOther")) +
 reviewRow("Spouse",valueOf("spouseFirstName") + " " + valueOf("spouseSurname")) +
+reviewRow("Spouse Phone",phoneValue("spousePhone")) +
 childHtml +
 '</div></div>' +
 '<div class="review-box"><div class="review-head">Emergency Contact</div><div class="review-body">' +
 reviewRow("Name",valueOf("contactName")) +
 reviewRow("Relationship",valueOf("relationship")) +
-reviewRow("Number",valueOf("contactNumber")) +
+reviewRow("Number",phoneValue("contactNumber")) +
 '</div></div>';
 }
 
@@ -1159,8 +1212,8 @@ surname:valueOf("surname"),
 gender:valueOf("gender"),
 dob:valueOf("dob"),
 nationality:valueOf("nationality"),
-phone:valueOf("phone"),
-altPhone:valueOf("altPhone"),
+phone:phoneValue("phone"),
+altPhone:phoneValue("altPhone"),
 email:valueOf("email"),
 houseNumber:valueOf("houseNumber"),
 streetName:valueOf("streetName"),
@@ -1176,10 +1229,10 @@ welcomeCourse:valueOf("familyCourse"),
 membershipStatus:valueOf("familyCourse"),
 spouseFirstName:valueOf("spouseFirstName"),
 spouseSurname:valueOf("spouseSurname"),
-spousePhone:valueOf("spousePhone"),
+spousePhone:phoneValue("spousePhone"),
 contactName:valueOf("contactName"),
 relationship:valueOf("relationship"),
-contactNumber:valueOf("contactNumber"),
+contactNumber:phoneValue("contactNumber"),
 children:children.filter(function(child){return child;})
 };
 
@@ -1195,15 +1248,13 @@ body:JSON.stringify(payload)
 });
 
 setTimeout(function(){
-
 clearError();
 showSuccess();
-
 },2500);
-
 });
 
 setupYears();
+setupDobPicker();
 handleMaritalStatusChange();
 updateUI();
 </script>
