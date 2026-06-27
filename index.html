@@ -626,8 +626,6 @@ font-size:18px;
 <div class="field-hint">Do not enter the first 0. Example: 82 123 4567.</div>
 </div>
 
-<div id="duplicateBox" class="notice">We will check if this phone number or email is already registered.</div>
-
 <div class="field">
 <label>Alternative Phone</label>
 <div class="phone-row">
@@ -872,17 +870,36 @@ select.innerHTML += '<option>' + y + '</option>';
 }
 
 function setupDobPicker(){
-const yearSelect = document.getElementById("dobYear");
-const monthSelect = document.getElementById("dobMonth");
-const daySelect = document.getElementById("dobDay");
+setupDobPickerFor("dob", "");
+}
+
+function setupDobPickerFor(prefix, selectedDate){
+const yearSelect = document.getElementById(prefix + "Year");
+const monthSelect = document.getElementById(prefix + "Month");
+const daySelect = document.getElementById(prefix + "Day");
+
+if(!yearSelect || !monthSelect || !daySelect){
+return;
+}
+
 const currentYear = new Date().getFullYear();
+let selectedYear = "";
+let selectedMonth = "";
+let selectedDay = "";
+
+if(selectedDate){
+const parts = selectedDate.split("-");
+selectedYear = parts[0] || "";
+selectedMonth = parts[1] || "";
+selectedDay = parts[2] || "";
+}
 
 yearSelect.innerHTML = '<option value="">Year</option>';
 monthSelect.innerHTML = '<option value="">Month</option>';
 daySelect.innerHTML = '<option value="">Day</option>';
 
 for(let y = currentYear; y >= 1900; y--){
-yearSelect.innerHTML += '<option value="' + y + '">' + y + '</option>';
+yearSelect.innerHTML += '<option value="' + y + '"' + (String(y) === selectedYear ? " selected" : "") + '>' + y + '</option>';
 }
 
 const months = [
@@ -892,27 +909,64 @@ const months = [
 
 months.forEach(function(month,index){
 const value = String(index + 1).padStart(2,"0");
-monthSelect.innerHTML += '<option value="' + value + '">' + month + '</option>';
+monthSelect.innerHTML += '<option value="' + value + '"' + (value === selectedMonth ? " selected" : "") + '>' + month + '</option>';
 });
 
-for(let d = 1; d <= 31; d++){
-const value = String(d).padStart(2,"0");
-daySelect.innerHTML += '<option value="' + value + '">' + d + '</option>';
-}
+refreshDobDays(prefix, selectedDay);
 }
 
-function updateDobFromSelects(dobId,ageId){
-const year = document.getElementById("dobYear").value;
-const month = document.getElementById("dobMonth").value;
-const day = document.getElementById("dobDay").value;
+function refreshDobDays(prefix, selectedDay){
+const yearSelect = document.getElementById(prefix + "Year");
+const monthSelect = document.getElementById(prefix + "Month");
+const daySelect = document.getElementById(prefix + "Day");
 
-if(!year || !month || !day){
-document.getElementById(dobId).value = "";
+if(!yearSelect || !monthSelect || !daySelect){
 return;
 }
 
-document.getElementById(dobId).value = year + "-" + month + "-" + day;
+const year = Number(yearSelect.value);
+const month = Number(monthSelect.value);
+const currentDay = selectedDay || daySelect.value;
+let daysInMonth = 31;
+
+if(year && month){
+daysInMonth = new Date(year, month, 0).getDate();
+}
+
+daySelect.innerHTML = '<option value="">Day</option>';
+
+for(let d = 1; d <= daysInMonth; d++){
+const value = String(d).padStart(2,"0");
+daySelect.innerHTML += '<option value="' + value + '"' + (value === currentDay ? " selected" : "") + '>' + d + '</option>';
+}
+}
+
+function updateDobFromSelects(dobId,ageId,childIndex){
+const prefix = dobId;
+const year = document.getElementById(prefix + "Year").value;
+const month = document.getElementById(prefix + "Month").value;
+const day = document.getElementById(prefix + "Day").value;
+
+refreshDobDays(prefix, day);
+
+if(!year || !month || !day){
+document.getElementById(dobId).value = "";
+document.getElementById(ageId).value = "";
+if(typeof childIndex === "number"){
+children[childIndex].dob = "";
+children[childIndex].age = "";
+}
+return;
+}
+
+const dobValue = year + "-" + month + "-" + day;
+document.getElementById(dobId).value = dobValue;
 calculateAge(dobId,ageId);
+
+if(typeof childIndex === "number"){
+children[childIndex].dob = dobValue;
+children[childIndex].age = document.getElementById(ageId).value;
+}
 }
 
 function cleanPhone(input){
@@ -1077,7 +1131,13 @@ container.innerHTML +=
 '</div>' +
 '<div class="field">' +
 '<label>Date Of Birth</label>' +
-'<input type="date" id="childDob' + index + '" value="' + escapeHtml(child.dob || "") + '" onchange="calculateChildAge(' + index + ')">' +
+'<div class="date-select-row">' +
+'<select id="childDob' + index + 'Year" onchange="updateDobFromSelects(\'childDob' + index + '\',\'childAge' + index + '\',' + index + ')"></select>' +
+'<select id="childDob' + index + 'Month" onchange="updateDobFromSelects(\'childDob' + index + '\',\'childAge' + index + '\',' + index + ')"></select>' +
+'<select id="childDob' + index + 'Day" onchange="updateDobFromSelects(\'childDob' + index + '\',\'childAge' + index + '\',' + index + ')"></select>' +
+'</div>' +
+'<input type="hidden" id="childDob' + index + '" value="' + escapeHtml(child.dob || "") + '">' +
+'<div class="field-hint">Select year, month and day.</div>' +
 '</div>' +
 '<div class="field">' +
 '<label>Age</label>' +
@@ -1093,6 +1153,10 @@ container.innerHTML +=
 '</div>' +
 '</div>';
 });
+
+children.forEach(function(child,index){
+setupDobPickerFor("childDob" + index, child.dob || "");
+});
 }
 
 function escapeHtml(value){
@@ -1105,15 +1169,7 @@ return String(value)
 }
 
 function calculateChildAge(index){
-const dob = document.getElementById("childDob" + index).value;
-children[index].dob = dob;
-const birth = new Date(dob);
-const today = new Date();
-let age = today.getFullYear() - birth.getFullYear();
-const m = today.getMonth() - birth.getMonth();
-if(m < 0 || (m === 0 && today.getDate() < birth.getDate())){age--;}
-children[index].age = age;
-document.getElementById("childAge" + index).value = age;
+updateDobFromSelects("childDob" + index,"childAge" + index,index);
 }
 
 function valueOf(id){
@@ -1175,20 +1231,7 @@ reviewRow("Number",phoneValue("contactNumber")) +
 }
 
 function checkDuplicate(){
-const phone = valueOf("phone");
-const email = valueOf("email");
-const box = document.getElementById("duplicateBox");
-
 duplicateFound = false;
-
-if(!phone && !email){
-box.className = "notice";
-box.innerText = "We will check if this phone number or email is already registered.";
-return;
-}
-
-box.className = "notice duplicate-ok";
-box.innerText = "Details captured. Final duplicate control can be handled by the church office records.";
 }
 
 function showSuccess(){
