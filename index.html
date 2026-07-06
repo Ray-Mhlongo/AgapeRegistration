@@ -351,11 +351,32 @@ overflow:hidden;
 }
 
 .review-head{
+display:flex;
+justify-content:space-between;
+align-items:center;
+gap:12px;
 background:#f8fafc;
 padding:16px;
 font-size:18px;
 font-weight:900;
 color:#075da8;
+}
+
+.review-head span{
+display:block;
+}
+
+.edit-review-btn{
+background:transparent;
+color:#075da8;
+border:1px solid #bfdbfe;
+border-radius:999px;
+padding:8px 12px;
+min-height:auto;
+font-size:15px;
+font-weight:900;
+white-space:nowrap;
+cursor:pointer;
 }
 
 .review-body{
@@ -847,6 +868,7 @@ font-size:18px;
 
 <script>
 let currentStep = 0;
+let returnToReview = false;
 let children = [];
 let duplicateFound = false;
 
@@ -1052,6 +1074,15 @@ return true;
 
 function nextStep(){
 if(!validateStep(currentStep)){return;}
+
+if(returnToReview && currentStep < 5){
+currentStep = 5;
+returnToReview = false;
+updateUI();
+window.scrollTo({top:0,behavior:"smooth"});
+return;
+}
+
 if(currentStep < 5){
 currentStep++;
 updateUI();
@@ -1067,10 +1098,22 @@ window.scrollTo({top:0,behavior:"smooth"});
 }
 }
 
+function editReviewStep(step){
+returnToReview = true;
+currentStep = step;
+updateUI();
+window.scrollTo({top:0,behavior:"smooth"});
+}
+
 function goToStep(step){
+if(currentStep === 5 && step < 5){
+returnToReview = true;
+}
+
 if(step <= currentStep){
 currentStep = step;
 updateUI();
+window.scrollTo({top:0,behavior:"smooth"});
 }
 }
 
@@ -1199,7 +1242,7 @@ childHtml = reviewRow("Children","No children added");
 }
 
 document.getElementById("reviewArea").innerHTML =
-'<div class="review-box"><div class="review-head">Personal Information</div><div class="review-body">' +
+'<div class="review-box"><div class="review-head"><span>Personal Information</span><button type="button" class="edit-review-btn" onclick="editReviewStep(0)">✏️ Edit</button></div><div class="review-body">' +
 reviewRow("Name",valueOf("firstName") + " " + valueOf("middleName") + " " + valueOf("surname")) +
 reviewRow("Gender",valueOf("gender")) +
 reviewRow("Date Of Birth",valueOf("dob")) +
@@ -1208,22 +1251,22 @@ reviewRow("Nationality",valueOf("nationality")) +
 reviewRow("Year Joined",valueOf("yearJoined")) +
 reviewRow("Membership Status",valueOf("familyCourse") === "Yes" ? "Member" : valueOf("familyCourse") === "No" ? "Visitor" : "") +
 '</div></div>' +
-'<div class="review-box"><div class="review-head">Contact Information</div><div class="review-body">' +
+'<div class="review-box"><div class="review-head"><span>Contact Information</span><button type="button" class="edit-review-btn" onclick="editReviewStep(1)">✏️ Edit</button></div><div class="review-body">' +
 reviewRow("Phone",phoneValue("phone")) +
 reviewRow("Alternative Phone",phoneValue("altPhone")) +
 reviewRow("Email",valueOf("email")) +
 '</div></div>' +
-'<div class="review-box"><div class="review-head">Address Information</div><div class="review-body">' +
+'<div class="review-box"><div class="review-head"><span>Address Information</span><button type="button" class="edit-review-btn" onclick="editReviewStep(2)">✏️ Edit</button></div><div class="review-body">' +
 reviewRow("Address",valueOf("houseNumber") + " " + valueOf("streetName") + ", " + valueOf("suburb") + ", " + valueOf("town") + ", " + valueOf("province")) +
 '</div></div>' +
-'<div class="review-box"><div class="review-head">Family Information</div><div class="review-body">' +
+'<div class="review-box"><div class="review-head"><span>Family Information</span><button type="button" class="edit-review-btn" onclick="editReviewStep(3)">✏️ Edit</button></div><div class="review-body">' +
 reviewRow("Marital Status",valueOf("maritalStatus")) +
 reviewRow("Specify Marital Status",valueOf("maritalOther")) +
 reviewRow("Spouse",valueOf("spouseFirstName") + " " + valueOf("spouseSurname")) +
 reviewRow("Spouse Phone",phoneValue("spousePhone")) +
 childHtml +
 '</div></div>' +
-'<div class="review-box"><div class="review-head">Emergency Contact</div><div class="review-body">' +
+'<div class="review-box"><div class="review-head"><span>Emergency Contact</span><button type="button" class="edit-review-btn" onclick="editReviewStep(4)">✏️ Edit</button></div><div class="review-body">' +
 reviewRow("Name",valueOf("contactName")) +
 reviewRow("Relationship",valueOf("relationship")) +
 reviewRow("Number",phoneValue("contactNumber")) +
