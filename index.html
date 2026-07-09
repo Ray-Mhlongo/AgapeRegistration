@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Agapé Membership Registration</title>
+<title>Agap&eacute; Family Registration</title>
 
 <style>
 *{
@@ -49,7 +49,7 @@ margin:0 auto 12px;
 }
 
 h1{
-margin:0;
+margin:0 auto;
 font-size:32px;
 line-height:1.12;
 color:#075da8;
@@ -62,11 +62,13 @@ margin:10px auto 18px;
 font-size:16px;
 line-height:1.35;
 color:#4b5563;
-max-width:96%;
+max-width:340px;
+overflow-wrap:break-word;
 }
 
 .step-scroll{
-width:100%;
+width:calc(100vw - 36px);
+max-width:100%;
 overflow-x:auto;
 padding-bottom:10px;
 -webkit-overflow-scrolling:touch;
@@ -79,7 +81,8 @@ display:none;
 .steps{
 display:flex;
 gap:10px;
-min-width:max-content;
+width:max-content;
+min-width:0;
 }
 
 .step{
@@ -124,6 +127,9 @@ display:flex;
 align-items:center;
 gap:12px;
 margin:14px 0 8px;
+width:calc(100vw - 36px);
+max-width:100%;
+min-width:0;
 }
 
 .progress-track{
@@ -131,7 +137,8 @@ height:11px;
 background:#e5e7eb;
 border-radius:30px;
 overflow:hidden;
-flex:1;
+flex:1 1 0;
+min-width:0;
 }
 
 .progress-fill{
@@ -146,6 +153,7 @@ font-size:15px;
 font-weight:900;
 color:#15803d;
 white-space:nowrap;
+flex:0 0 auto;
 }
 
 #errorBox{
@@ -184,6 +192,14 @@ font-weight:900;
 color:#075da8;
 margin:0 0 10px;
 letter-spacing:-.3px;
+}
+
+.subsection-title{
+font-size:23px;
+line-height:1.18;
+font-weight:900;
+color:#075da8;
+margin:26px 0 14px;
 }
 
 .helper{
@@ -268,6 +284,12 @@ font-weight:800;
 margin:14px 0;
 }
 
+.warning{
+background:#fff7ed;
+border-color:#fed7aa;
+color:#9a3412;
+}
+
 .duplicate-ok{
 background:#dcfce7;
 border-color:#86efac;
@@ -298,6 +320,11 @@ min-height:66px;
 cursor:pointer;
 }
 
+button:disabled{
+opacity:.65;
+cursor:not-allowed;
+}
+
 .btn-primary{
 background:#075da8;
 color:white;
@@ -319,6 +346,44 @@ color:#991b1b;
 font-size:16px;
 min-height:50px;
 padding:12px 14px;
+}
+
+.option-grid{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:12px;
+}
+
+.option-card{
+display:flex;
+align-items:center;
+gap:12px;
+min-height:68px;
+padding:14px;
+border:1px solid #d8dee9;
+border-radius:15px;
+background:#ffffff;
+font-weight:900;
+cursor:pointer;
+}
+
+.option-card input{
+width:24px;
+height:24px;
+min-height:24px;
+padding:0;
+margin:0;
+flex:0 0 auto;
+}
+
+.spouse-section,
+.conditional-section{
+display:none;
+}
+
+.spouse-section.active,
+.conditional-section.active{
+display:block;
 }
 
 .child-card{
@@ -535,6 +600,20 @@ padding:18px;
 button{
 font-size:18px;
 }
+
+.option-grid{
+grid-template-columns:1fr;
+}
+}
+
+@media(max-width:520px){
+h1{
+max-width:320px;
+}
+
+.progress-track{
+flex:0 1 275px;
+}
 }
 </style>
 </head>
@@ -544,18 +623,18 @@ font-size:18px;
 <div id="mainApp" class="app">
 
 <div class="header">
-<img class="logo" src="https://lh3.googleusercontent.com/d/1Mo9EDR6WanQJ1oD8azG77PUMSKZFCCJX" alt="Agapé Logo">
+<img class="logo" src="https://lh3.googleusercontent.com/d/1Mo9EDR6WanQJ1oD8azG77PUMSKZFCCJX" alt="Agap&eacute; Logo">
 
-<h1>Agapé Membership Registration</h1>
-<p class="tagline">Please complete your membership details below.</p>
+<h1>Agap&eacute; Family Registration</h1>
+<p class="tagline">Please complete one registration for your family.</p>
 
 <div class="step-scroll">
 <div class="steps">
-<div class="step active" onclick="goToStep(0)"><div class="step-dot">1</div><span>Personal</span></div>
+<div class="step active" onclick="goToStep(0)"><div class="step-dot">1</div><span>You</span></div>
 <div class="step" onclick="goToStep(1)"><div class="step-dot">2</div><span>Contact</span></div>
-<div class="step" onclick="goToStep(2)"><div class="step-dot">3</div><span>Address</span></div>
-<div class="step" onclick="goToStep(3)"><div class="step-dot">4</div><span>Family</span></div>
-<div class="step" onclick="goToStep(4)"><div class="step-dot">5</div><span>Emergency</span></div>
+<div class="step" onclick="goToStep(2)"><div class="step-dot">3</div><span>Family</span></div>
+<div class="step" onclick="goToStep(3)"><div class="step-dot">4</div><span>Spouse</span></div>
+<div class="step" onclick="goToStep(4)"><div class="step-dot">5</div><span>Children</span></div>
 <div class="step" onclick="goToStep(5)"><div class="step-dot">6</div><span>Review</span></div>
 </div>
 </div>
@@ -574,8 +653,8 @@ font-size:18px;
 
 <div class="form-page active" data-page="0">
 <p class="step-title">Step 1 of 6</p>
-<h2 class="section-title">Personal Information</h2>
-<p class="helper">Please provide your personal details.</p>
+<h2 class="section-title">Your Information</h2>
+<p class="helper">Please provide your details.</p>
 
 <div class="field">
 <label>First Name <span class="required">*</span></label>
@@ -641,7 +720,7 @@ font-size:18px;
 <div class="field">
 <label>Phone Number <span class="required">*</span></label>
 <div class="phone-row">
-<select><option>+27</option></select>
+<select aria-label="Country code"><option>+27</option></select>
 <input id="phone" required inputmode="numeric" placeholder="Example: 82 123 4567" oninput="cleanPhone(this)" onblur="checkDuplicate()">
 </div>
 <div class="field-hint">Do not enter the first 0. Example: 82 123 4567.</div>
@@ -650,7 +729,7 @@ font-size:18px;
 <div class="field">
 <label>Alternative Phone</label>
 <div class="phone-row">
-<select><option>+27</option></select>
+<select aria-label="Country code"><option>+27</option></select>
 <input id="altPhone" inputmode="numeric" placeholder="Example: 83 123 4567" oninput="cleanPhone(this)">
 </div>
 <div class="field-hint">Do not enter the first 0.</div>
@@ -661,6 +740,8 @@ font-size:18px;
 <input type="email" id="email" placeholder="Example: name@gmail.com" onblur="checkDuplicate()">
 </div>
 
+<div id="duplicateNotice" class="notice" style="display:none"></div>
+
 <div class="actions">
 <button type="button" class="btn-secondary" onclick="prevStep()">Back</button>
 <button type="button" class="btn-primary" onclick="nextStep()">Next</button>
@@ -669,8 +750,10 @@ font-size:18px;
 
 <div class="form-page" data-page="2">
 <p class="step-title">Step 3 of 6</p>
-<h2 class="section-title">Address Information</h2>
-<p class="helper">Please provide your address details.</p>
+<h2 class="section-title">Family Information</h2>
+<p class="helper">Please provide your family address, marital status and emergency contact.</p>
+
+<h3 class="subsection-title">Address</h3>
 
 <div class="field">
 <label>House Number <span class="required">*</span></label>
@@ -708,16 +791,7 @@ font-size:18px;
 </select>
 </div>
 
-<div class="actions">
-<button type="button" class="btn-secondary" onclick="prevStep()">Back</button>
-<button type="button" class="btn-primary" onclick="nextStep()">Next</button>
-</div>
-</div>
-
-<div class="form-page" data-page="3">
-<p class="step-title">Step 4 of 6</p>
-<h2 class="section-title">Family Information</h2>
-<p class="helper">Please provide your family details.</p>
+<h3 class="subsection-title">Family</h3>
 
 <div class="field">
 <label>Marital Status <span class="required">*</span></label>
@@ -729,52 +803,24 @@ font-size:18px;
 </select>
 </div>
 
-<div id="maritalOtherWrap" style="display:none">
+<div id="maritalOtherWrap" class="conditional-section">
 <div class="field">
 <label>Specify Marital Status</label>
 <input id="maritalOther" placeholder="Example: Widowed">
 </div>
 </div>
 
-<div id="spouseWrap" style="display:none">
-<div class="notice">Since you selected Married, please provide spouse details.</div>
-
+<div id="spouseAttendWrap" class="conditional-section">
 <div class="field">
-<label>Spouse First Name <span class="required">*</span></label>
-<input id="spouseFirstName" placeholder="Example: Lerato">
+<label>Is your spouse part of Agap&eacute; Christian Centre? <span class="required">*</span></label>
+<div class="option-grid">
+<label class="option-card"><input type="radio" name="spouseAttends" value="Yes" onchange="handleSpouseAttendChange()"> Yes</label>
+<label class="option-card"><input type="radio" name="spouseAttends" value="No" onchange="handleSpouseAttendChange()"> No</label>
 </div>
-
-<div class="field">
-<label>Spouse Surname <span class="required">*</span></label>
-<input id="spouseSurname" placeholder="Example: Mokoena">
-</div>
-
-<div class="field">
-<label>Spouse Phone Number</label>
-<div class="phone-row">
-<select><option>+27</option></select>
-<input id="spousePhone" inputmode="numeric" placeholder="Example: 82 123 4567" oninput="cleanPhone(this)">
-</div>
-<div class="field-hint">Do not enter the first 0.</div>
 </div>
 </div>
 
-<div class="notice">Children: add all children living with you.</div>
-
-<button type="button" class="btn-primary" onclick="addChild()">Add Child</button>
-
-<div id="childrenContainer"></div>
-
-<div class="actions">
-<button type="button" class="btn-secondary" onclick="prevStep()">Back</button>
-<button type="button" class="btn-primary" onclick="nextStep()">Next</button>
-</div>
-</div>
-
-<div class="form-page" data-page="4">
-<p class="step-title">Step 5 of 6</p>
-<h2 class="section-title">Emergency Contact</h2>
-<p class="helper">Please provide an emergency contact person.</p>
+<h3 class="subsection-title">Emergency Contact</h3>
 
 <div class="field">
 <label>Emergency Contact Name <span class="required">*</span></label>
@@ -801,7 +847,7 @@ font-size:18px;
 <div class="field">
 <label>Contact Number <span class="required">*</span></label>
 <div class="phone-row">
-<select><option>+27</option></select>
+<select aria-label="Country code"><option>+27</option></select>
 <input id="contactNumber" required inputmode="numeric" placeholder="Example: 82 123 4567" oninput="cleanPhone(this)">
 </div>
 <div class="field-hint">Do not enter the first 0.</div>
@@ -813,18 +859,156 @@ font-size:18px;
 </div>
 </div>
 
+<div class="form-page" data-page="3">
+<p class="step-title">Step 4 of 6</p>
+<h2 class="section-title">Spouse Information</h2>
+<p class="helper">Spouse details are based on the family answer from the previous step.</p>
+
+<div id="spouseNotRequired" class="notice">No spouse information is required for this family.</div>
+
+<div id="externalSpouseForm" class="spouse-section">
+<div class="notice">Please provide your spouse's basic contact details.</div>
+
+<div class="field">
+<label>Spouse First Name <span class="required">*</span></label>
+<input id="externalSpouseFirstName" placeholder="Example: Lerato">
+</div>
+
+<div class="field">
+<label>Spouse Surname <span class="required">*</span></label>
+<input id="externalSpouseSurname" placeholder="Example: Mokoena">
+</div>
+
+<div class="field">
+<label>Spouse Phone Number <span class="required">*</span></label>
+<div class="phone-row">
+<select aria-label="Country code"><option>+27</option></select>
+<input id="externalSpousePhone" inputmode="numeric" placeholder="Example: 82 123 4567" oninput="cleanPhone(this)">
+</div>
+<div class="field-hint">Do not enter the first 0.</div>
+</div>
+
+<div class="field">
+<label>Spouse Email Address <span class="required">*</span></label>
+<input type="email" id="externalSpouseEmail" placeholder="Example: name@gmail.com">
+</div>
+</div>
+
+<div id="attendingSpouseForm" class="spouse-section">
+<div class="notice">Please provide your spouse's details.</div>
+
+<div class="field">
+<label>First Name <span class="required">*</span></label>
+<input id="spouseFirstName" placeholder="Example: Lerato">
+</div>
+
+<div class="field">
+<label>Middle Name</label>
+<input id="spouseMiddleName" placeholder="Example: Nandi">
+</div>
+
+<div class="field">
+<label>Surname <span class="required">*</span></label>
+<input id="spouseSurname" placeholder="Example: Mokoena">
+</div>
+
+<div class="field">
+<label>Gender <span class="required">*</span></label>
+<select id="spouseGender">
+<option value="">Select Gender</option>
+<option>Female</option>
+<option>Male</option>
+</select>
+</div>
+
+<div class="field">
+<label>Date Of Birth <span class="required">*</span></label>
+<div class="date-select-row">
+<select id="spouseDobYear" onchange="updateDobFromSelects('spouseDob','spouseAge')"></select>
+<select id="spouseDobMonth" onchange="updateDobFromSelects('spouseDob','spouseAge')"></select>
+<select id="spouseDobDay" onchange="updateDobFromSelects('spouseDob','spouseAge')"></select>
+</div>
+<input type="hidden" id="spouseDob">
+<div class="field-hint">Select year, month and day.</div>
+</div>
+
+<div class="field">
+<label>Age</label>
+<input id="spouseAge" readonly placeholder="Auto calculated">
+</div>
+
+<div class="field">
+<label>Nationality</label>
+<input id="spouseNationality" placeholder="Example: South African">
+</div>
+
+<div class="field">
+<label>Year Joined Church</label>
+<select id="spouseYearJoined"></select>
+</div>
+
+<div class="field">
+<label>Phone Number <span class="required">*</span></label>
+<div class="phone-row">
+<select aria-label="Country code"><option>+27</option></select>
+<input id="spousePhone" inputmode="numeric" placeholder="Example: 82 123 4567" oninput="cleanPhone(this)">
+</div>
+<div class="field-hint">Do not enter the first 0.</div>
+</div>
+
+<div class="field">
+<label>Alternative Phone</label>
+<div class="phone-row">
+<select aria-label="Country code"><option>+27</option></select>
+<input id="spouseAltPhone" inputmode="numeric" placeholder="Example: 83 123 4567" oninput="cleanPhone(this)">
+</div>
+</div>
+
+<div class="field">
+<label>Email Address</label>
+<input type="email" id="spouseEmail" placeholder="Example: name@gmail.com">
+</div>
+
+<div class="field">
+<label>Did we receive your spouse as a member of Agap&eacute; with a certificate? <span class="required">*</span></label>
+<select id="spouseFamilyCourse">
+<option value="">Select Option</option>
+<option>Yes</option>
+<option>No</option>
+</select>
+</div>
+</div>
+
+<div class="actions">
+<button type="button" class="btn-secondary" onclick="prevStep()">Back</button>
+<button type="button" class="btn-primary" onclick="nextStep()">Next</button>
+</div>
+</div>
+
+<div class="form-page" data-page="4">
+<p class="step-title">Step 5 of 6</p>
+<h2 class="section-title">Children</h2>
+<p class="helper">Add children who belong to your family. Adult children who are not full time students must complete their own registration.</p>
+
+<button type="button" class="btn-primary" onclick="addChild()">Add a Child</button>
+<div id="childrenContainer"></div>
+
+<div class="actions">
+<button type="button" class="btn-secondary" onclick="prevStep()">Back</button>
+<button type="button" class="btn-primary" onclick="nextStep()">Next</button>
+</div>
+</div>
+
 <div class="form-page" data-page="5">
 <p class="step-title">Step 6 of 6</p>
 <h2 class="section-title">Review and Consent</h2>
-<p class="helper">Review your information before submitting.</p>
-
-<div id="reviewArea"></div>
+<p class="helper">Review your family information before submitting.</p>
 
 <div class="review-box">
 <div class="review-head">Welcome to the Family Course</div>
 <div class="review-body">
 <div class="field">
-<label>Did we receive you as a member of Agapé with a certificate? <span class="required">*</span></label>
+<label>Did we receive you as a member of Agap&eacute; with a certificate? <span class="required">*</span></label>
 <select id="familyCourse" required>
 <option value="">Select Option</option>
 <option>Yes</option>
@@ -834,6 +1018,8 @@ font-size:18px;
 </div>
 </div>
 
+<div id="reviewArea"></div>
+
 <div class="consent-box">
 <input type="checkbox" id="confirmInfo" required>
 <label for="confirmInfo">I confirm that the information provided is correct to the best of my knowledge.</label>
@@ -841,12 +1027,12 @@ font-size:18px;
 
 <div class="consent-box">
 <input type="checkbox" id="consentInfo" required>
-<label for="consentInfo">I consent to Agapé Christian Centre storing my information for church administration purposes.</label>
+<label for="consentInfo">I consent to Agap&eacute; Christian Centre storing my family information for church administration purposes.</label>
 </div>
 
 <div class="actions">
 <button type="button" class="btn-secondary" onclick="prevStep()">Back</button>
-<button type="submit" class="btn-success">Submit Registration</button>
+<button id="submitButton" type="submit" class="btn-success">Submit Registration</button>
 </div>
 </div>
 
@@ -854,19 +1040,23 @@ font-size:18px;
 </div>
 
 <div id="successScreen" class="success-screen">
-<img class="success-logo" src="https://lh3.googleusercontent.com/d/1Mo9EDR6WanQJ1oD8azG77PUMSKZFCCJX" alt="Agapé Logo">
-<div class="check">✓</div>
-<h2>Thank you<br>for registering with<br>Agapé Christian Centre.</h2>
-<div class="family">Welcome to the Agapé family ❤️</div>
+<img class="success-logo" src="https://lh3.googleusercontent.com/d/1Mo9EDR6WanQJ1oD8azG77PUMSKZFCCJX" alt="Agap&eacute; Logo">
+<div class="check">&#10003;</div>
+<h2>Thank you for completing your registration.</h2>
+<div id="successMessage" class="family">Your information has been received successfully.</div>
 <div class="verse-card">
-<h3>🎉 Celebration Verse For You</h3>
+<h3>Celebration Verse For You</h3>
 <div id="verseText" class="verse-text"></div>
 <div id="verseRef" class="verse-ref"></div>
 </div>
-<div class="footer">© Agapé Christian Centre</div>
+<div class="footer">&copy; Agap&eacute; Christian Centre</div>
 </div>
 
 <script>
+const APPS_SCRIPT_URL = window.AGAPE_REGISTRATION_ENDPOINT || "https://script.google.com/macros/s/AKfycbz9lEzbPOGyYi7ZnxEMnyBHXHeas0BDKsyUYbwVndGW1S8yzwus6I81BpjxToJ19rfqgA/exec";
+const LOCAL_PREVIEW = location.protocol === "file:" || location.hostname === "localhost" || location.hostname === "127.0.0.1";
+const STEP_COUNT = 6;
+
 let currentStep = 0;
 let returnToReview = false;
 let children = [];
@@ -883,7 +1073,13 @@ const celebrationVerses = [
 ];
 
 function setupYears(){
-const select = document.getElementById("yearJoined");
+populateYearSelect("yearJoined");
+populateYearSelect("spouseYearJoined");
+}
+
+function populateYearSelect(id){
+const select = document.getElementById(id);
+if(!select){return;}
 const year = new Date().getFullYear();
 select.innerHTML = '<option value="">Select Year</option>';
 for(let y = year; y >= 1950; y--){
@@ -893,6 +1089,7 @@ select.innerHTML += '<option>' + y + '</option>';
 
 function setupDobPicker(){
 setupDobPickerFor("dob", "");
+setupDobPickerFor("spouseDob", "");
 }
 
 function setupDobPickerFor(prefix, selectedDate){
@@ -977,6 +1174,9 @@ document.getElementById(ageId).value = "";
 if(typeof childIndex === "number"){
 children[childIndex].dob = "";
 children[childIndex].age = "";
+clearHiddenChildFields(childIndex);
+renderChildAgeDetails(childIndex);
+renderChildAttendanceDetails(childIndex);
 }
 return;
 }
@@ -988,6 +1188,9 @@ calculateAge(dobId,ageId);
 if(typeof childIndex === "number"){
 children[childIndex].dob = dobValue;
 children[childIndex].age = document.getElementById(ageId).value;
+clearHiddenChildFields(childIndex);
+renderChildAgeDetails(childIndex);
+renderChildAttendanceDetails(childIndex);
 }
 }
 
@@ -1028,13 +1231,15 @@ step.classList.toggle("active",index === currentStep);
 step.classList.toggle("done",index < currentStep);
 });
 
-const percent = Math.round(((currentStep + 1) / 6) * 100);
+const percent = Math.round(((currentStep + 1) / STEP_COUNT) * 100);
 document.getElementById("progressFill").style.width = percent + "%";
 document.getElementById("progressText").innerText = percent + "% Complete";
 
 if(currentStep === 5){
 buildReview();
 }
+
+updateSpousePage();
 }
 
 function validateStep(step){
@@ -1044,6 +1249,8 @@ const page = document.querySelector('.form-page[data-page="' + step + '"]');
 const required = page.querySelectorAll("[required]");
 
 for(const field of required){
+if(!isVisible(field)){continue;}
+
 if(!field.value && field.type !== "checkbox"){
 field.focus();
 showError("Please complete all compulsory fields.");
@@ -1062,14 +1269,31 @@ showError("This phone number or email is already registered. Please check the de
 return false;
 }
 
-if(step === 3 && document.getElementById("maritalStatus").value === "Married"){
-if(!document.getElementById("spouseFirstName").value || !document.getElementById("spouseSurname").value){
-showError("Please complete spouse first name and surname.");
+if(step === 2){
+const maritalStatus = valueOf("maritalStatus");
+if(maritalStatus === "Other" && !valueOf("maritalOther")){
+showError("Please specify the marital status.");
+return false;
+}
+if(maritalStatus === "Married" && !spouseAttendValue()){
+showError("Please tell us whether your spouse is part of Agap\u00e9 Christian Centre.");
 return false;
 }
 }
 
+if(step === 3 && !validateSpouseStep()){
+return false;
+}
+
+if(step === 4 && !validateChildren()){
+return false;
+}
+
 return true;
+}
+
+function isVisible(element){
+return !!(element.offsetWidth || element.offsetHeight || element.getClientRects().length);
 }
 
 function nextStep(){
@@ -1130,19 +1354,80 @@ document.getElementById(ageId).value = age;
 
 function handleMaritalStatusChange(){
 const status = document.getElementById("maritalStatus").value;
-const married = status === "Married";
-const other = status === "Other";
-document.getElementById("spouseWrap").style.display = married ? "block" : "none";
-document.getElementById("maritalOtherWrap").style.display = other ? "block" : "none";
+document.getElementById("spouseAttendWrap").classList.toggle("active", status === "Married");
+document.getElementById("maritalOtherWrap").classList.toggle("active", status === "Other");
+updateSpousePage();
+}
+
+function handleSpouseAttendChange(){
+updateSpousePage();
+}
+
+function spouseAttendValue(){
+const checked = document.querySelector('input[name="spouseAttends"]:checked');
+return checked ? checked.value : "";
+}
+
+function updateSpousePage(){
+const married = valueOf("maritalStatus") === "Married";
+const attends = spouseAttendValue();
+document.getElementById("spouseNotRequired").style.display = married ? "none" : "block";
+document.getElementById("externalSpouseForm").classList.toggle("active", married && attends === "No");
+document.getElementById("attendingSpouseForm").classList.toggle("active", married && attends === "Yes");
+if(married && !attends){
+document.getElementById("spouseNotRequired").style.display = "block";
+document.getElementById("spouseNotRequired").innerText = "Please answer whether your spouse is part of Agap\u00e9 Christian Centre on the Family step.";
+}else if(!married){
+document.getElementById("spouseNotRequired").innerText = "No spouse information is required for this family.";
+}
+}
+
+function validateSpouseStep(){
+if(valueOf("maritalStatus") !== "Married"){
+return true;
+}
+
+const attends = spouseAttendValue();
+
+if(attends === "No"){
+const fields = ["externalSpouseFirstName","externalSpouseSurname","externalSpousePhone","externalSpouseEmail"];
+for(const id of fields){
+if(!valueOf(id)){
+document.getElementById(id).focus();
+showError("Please complete all spouse fields.");
+return false;
+}
+}
+return true;
+}
+
+if(attends === "Yes"){
+const fields = ["spouseFirstName","spouseSurname","spouseGender","spouseDob","spousePhone","spouseFamilyCourse"];
+for(const id of fields){
+if(!valueOf(id)){
+const field = document.getElementById(id);
+if(field.type !== "hidden"){field.focus();}
+showError("Please complete all compulsory spouse fields.");
+return false;
+}
+}
+return true;
+}
+
+showError("Please answer whether your spouse is part of Agap\u00e9 Christian Centre.");
+return false;
 }
 
 function addChild(){
 children.push({
 firstName:"",
 surname:"",
+gender:"",
 dob:"",
 age:"",
-gender:""
+attendsChurch:"",
+universityStudent:"",
+phone:""
 });
 
 renderChildren();
@@ -1153,9 +1438,22 @@ children.splice(index,1);
 renderChildren();
 }
 
+function updateChild(index,key,value){
+children[index][key] = value;
+if(key === "attendsChurch"){
+children[index].universityStudent = "";
+renderChildAttendanceDetails(index);
+}
+}
+
 function renderChildren(){
 const container = document.getElementById("childrenContainer");
 container.innerHTML = "";
+
+if(!children.length){
+container.innerHTML = '<div class="notice">No children added yet.</div>';
+return;
+}
 
 children.forEach(function(child,index){
 container.innerHTML +=
@@ -1165,15 +1463,23 @@ container.innerHTML +=
 '<button type="button" class="btn-danger" onclick="removeChildCard(' + index + ')">Remove</button>' +
 '</div>' +
 '<div class="field">' +
-'<label>First Name</label>' +
-'<input placeholder="Example: Naledi" value="' + escapeHtml(child.firstName || "") + '" oninput="children[' + index + '].firstName=this.value">' +
+'<label>First Name <span class="required">*</span></label>' +
+'<input placeholder="Example: Naledi" value="' + escapeHtml(child.firstName || "") + '" oninput="updateChild(' + index + ',\'firstName\',this.value)">' +
 '</div>' +
 '<div class="field">' +
-'<label>Surname</label>' +
-'<input placeholder="Example: Mokoena" value="' + escapeHtml(child.surname || "") + '" oninput="children[' + index + '].surname=this.value">' +
+'<label>Surname <span class="required">*</span></label>' +
+'<input placeholder="Example: Mokoena" value="' + escapeHtml(child.surname || "") + '" oninput="updateChild(' + index + ',\'surname\',this.value)">' +
 '</div>' +
 '<div class="field">' +
-'<label>Date Of Birth</label>' +
+'<label>Gender <span class="required">*</span></label>' +
+'<select onchange="updateChild(' + index + ',\'gender\',this.value)">' +
+'<option value="">Select Gender</option>' +
+'<option value="Female" ' + (child.gender === "Female" ? "selected" : "") + '>Female</option>' +
+'<option value="Male" ' + (child.gender === "Male" ? "selected" : "") + '>Male</option>' +
+'</select>' +
+'</div>' +
+'<div class="field">' +
+'<label>Date Of Birth <span class="required">*</span></label>' +
 '<div class="date-select-row">' +
 '<select id="childDob' + index + 'Year" onchange="updateDobFromSelects(\'childDob' + index + '\',\'childAge' + index + '\',' + index + ')"></select>' +
 '<select id="childDob' + index + 'Month" onchange="updateDobFromSelects(\'childDob' + index + '\',\'childAge' + index + '\',' + index + ')"></select>' +
@@ -1186,20 +1492,129 @@ container.innerHTML +=
 '<label>Age</label>' +
 '<input id="childAge' + index + '" value="' + escapeHtml(String(child.age || "")) + '" readonly placeholder="Auto calculated">' +
 '</div>' +
+'<div id="childAgeDetails' + index + '"></div>' +
 '<div class="field">' +
-'<label>Gender</label>' +
-'<select onchange="children[' + index + '].gender=this.value">' +
-'<option value="">Select Gender</option>' +
-'<option value="Female" ' + (child.gender === "Female" ? "selected" : "") + '>Female</option>' +
-'<option value="Male" ' + (child.gender === "Male" ? "selected" : "") + '>Male</option>' +
+'<label>Does this child regularly attend Agap&eacute; Christian Centre? <span class="required">*</span></label>' +
+'<select onchange="updateChild(' + index + ',\'attendsChurch\',this.value)">' +
+'<option value="">Select Option</option>' +
+'<option value="Yes" ' + (child.attendsChurch === "Yes" ? "selected" : "") + '>Yes</option>' +
+'<option value="No" ' + (child.attendsChurch === "No" ? "selected" : "") + '>No</option>' +
 '</select>' +
 '</div>' +
+'<div id="childAttendanceDetails' + index + '"></div>' +
 '</div>';
 });
 
 children.forEach(function(child,index){
 setupDobPickerFor("childDob" + index, child.dob || "");
+renderChildAgeDetails(index);
+renderChildAttendanceDetails(index);
 });
+}
+
+function childAgeNumber(child){
+if(child.age === "" || child.age === null || typeof child.age === "undefined"){
+return null;
+}
+const age = Number(child.age);
+return Number.isFinite(age) ? age : null;
+}
+
+function clearHiddenChildFields(index){
+const child = children[index];
+if(!child){return;}
+const age = childAgeNumber(child);
+
+if(age === null || age < 13){
+child.phone = "";
+}
+
+if(age === null || age < 17){
+child.universityStudent = "";
+}
+}
+
+function renderChildAgeDetails(index){
+const wrap = document.getElementById("childAgeDetails" + index);
+if(!wrap || !children[index]){return;}
+
+const child = children[index];
+const age = childAgeNumber(child);
+
+if(age === null || age < 13){
+child.phone = "";
+wrap.innerHTML = "";
+return;
+}
+
+wrap.innerHTML =
+'<div class="field">' +
+'<label>Child Phone Number (Optional)</label>' +
+'<div class="phone-row"><select aria-label="Country code"><option>+27</option></select>' +
+'<input inputmode="numeric" placeholder="Optional" value="' + escapeHtml(child.phone || "") + '" oninput="cleanPhone(this); updateChild(' + index + ',\'phone\',this.value)"></div>' +
+'<div class="field-hint">Optional. Leave blank if unavailable.</div>' +
+'</div>';
+}
+
+function renderChildAttendanceDetails(index){
+const wrap = document.getElementById("childAttendanceDetails" + index);
+if(!wrap || !children[index]){return;}
+
+const child = children[index];
+const age = childAgeNumber(child);
+
+if(child.attendsChurch !== "Yes"){
+child.universityStudent = "";
+wrap.innerHTML = child.attendsChurch === "No" ? '<div class="notice">This child will still be included in your family information.</div>' : "";
+return;
+}
+
+if(age === null || age < 17){
+child.universityStudent = "";
+wrap.innerHTML = "";
+return;
+}
+
+const blocked = age >= 18 && child.universityStudent === "No";
+wrap.innerHTML =
+'<div class="field">' +
+'<label>Is this child currently studying full time at a university or college? <span class="required">*</span></label>' +
+'<select onchange="updateChild(' + index + ',\'universityStudent\',this.value); renderChildAttendanceDetails(' + index + ')">' +
+'<option value="">Select Option</option>' +
+'<option value="Yes" ' + (child.universityStudent === "Yes" ? "selected" : "") + '>Yes</option>' +
+'<option value="No" ' + (child.universityStudent === "No" ? "selected" : "") + '>No</option>' +
+'</select>' +
+'</div>' +
+(blocked ? '<div class="notice warning">Members aged eighteen and older who are not full time university students must complete their own membership registration.</div>' : "");
+}
+
+function validateChildren(){
+for(let i = 0; i < children.length; i++){
+const child = children[i];
+if(!child.firstName || !child.surname || !child.gender || !child.dob || !child.attendsChurch){
+showError("Please complete all compulsory fields for Child " + (i + 1) + ".");
+return false;
+}
+
+if(child.attendsChurch === "Yes"){
+const age = childAgeNumber(child);
+if(age !== null && age < 17){
+continue;
+}
+
+if(!child.universityStudent){
+showError("Please answer the university student question for Child " + (i + 1) + ".");
+return false;
+}
+
+if(age >= 18 && child.universityStudent === "No"){
+showError("Child " + (i + 1) + " is eighteen or older and not a full time university student. They must complete their own membership registration.");
+return false;
+}
+}
+}
+
+return true;
 }
 
 function escapeHtml(value){
@@ -1211,13 +1626,9 @@ return String(value)
 .replace(/'/g,"&#039;");
 }
 
-function calculateChildAge(index){
-updateDobFromSelects("childDob" + index,"childAge" + index,index);
-}
-
 function valueOf(id){
 const el = document.getElementById(id);
-return el ? el.value : "";
+return el ? el.value.trim() : "";
 }
 
 function phoneValue(id){
@@ -1225,82 +1636,62 @@ const value = valueOf(id);
 return value ? "+27" + value : "";
 }
 
-function reviewRow(label,value){
-return '<div class="review-row"><strong>' + label + '</strong><span>' + (value || "Not provided") + '</span></div>';
+function spousePayload(){
+if(valueOf("maritalStatus") !== "Married"){
+return null;
 }
 
-function buildReview(){
-const validChildren = children.filter(function(child){return child;});
-let childHtml = "";
-
-if(validChildren.length){
-validChildren.forEach(function(child,index){
-childHtml += reviewRow("Child " + (index + 1), (child.firstName || "") + " " + (child.surname || "") + ", " + (child.age || "") + " years");
-});
-}else{
-childHtml = reviewRow("Children","No children added");
+if(spouseAttendValue() === "No"){
+return {
+relationship:"Spouse",
+attendsChurch:false,
+external:true,
+firstName:valueOf("externalSpouseFirstName"),
+surname:valueOf("externalSpouseSurname"),
+phone:phoneValue("externalSpousePhone"),
+email:valueOf("externalSpouseEmail")
+};
 }
 
-document.getElementById("reviewArea").innerHTML =
-'<div class="review-box"><div class="review-head"><span>Personal Information</span><button type="button" class="edit-review-btn" onclick="editReviewStep(0)">✏️ Edit</button></div><div class="review-body">' +
-reviewRow("Name",valueOf("firstName") + " " + valueOf("middleName") + " " + valueOf("surname")) +
-reviewRow("Gender",valueOf("gender")) +
-reviewRow("Date Of Birth",valueOf("dob")) +
-reviewRow("Age",valueOf("age")) +
-reviewRow("Nationality",valueOf("nationality")) +
-reviewRow("Year Joined",valueOf("yearJoined")) +
-reviewRow("Membership Status",valueOf("familyCourse") === "Yes" ? "Member" : valueOf("familyCourse") === "No" ? "Visitor" : "") +
-'</div></div>' +
-'<div class="review-box"><div class="review-head"><span>Contact Information</span><button type="button" class="edit-review-btn" onclick="editReviewStep(1)">✏️ Edit</button></div><div class="review-body">' +
-reviewRow("Phone",phoneValue("phone")) +
-reviewRow("Alternative Phone",phoneValue("altPhone")) +
-reviewRow("Email",valueOf("email")) +
-'</div></div>' +
-'<div class="review-box"><div class="review-head"><span>Address Information</span><button type="button" class="edit-review-btn" onclick="editReviewStep(2)">✏️ Edit</button></div><div class="review-body">' +
-reviewRow("Address",valueOf("houseNumber") + " " + valueOf("streetName") + ", " + valueOf("suburb") + ", " + valueOf("town") + ", " + valueOf("province")) +
-'</div></div>' +
-'<div class="review-box"><div class="review-head"><span>Family Information</span><button type="button" class="edit-review-btn" onclick="editReviewStep(3)">✏️ Edit</button></div><div class="review-body">' +
-reviewRow("Marital Status",valueOf("maritalStatus")) +
-reviewRow("Specify Marital Status",valueOf("maritalOther")) +
-reviewRow("Spouse",valueOf("spouseFirstName") + " " + valueOf("spouseSurname")) +
-reviewRow("Spouse Phone",phoneValue("spousePhone")) +
-childHtml +
-'</div></div>' +
-'<div class="review-box"><div class="review-head"><span>Emergency Contact</span><button type="button" class="edit-review-btn" onclick="editReviewStep(4)">✏️ Edit</button></div><div class="review-body">' +
-reviewRow("Name",valueOf("contactName")) +
-reviewRow("Relationship",valueOf("relationship")) +
-reviewRow("Number",phoneValue("contactNumber")) +
-'</div></div>';
+return {
+relationship:"Spouse",
+attendsChurch:true,
+external:false,
+firstName:valueOf("spouseFirstName"),
+middleName:valueOf("spouseMiddleName"),
+surname:valueOf("spouseSurname"),
+gender:valueOf("spouseGender"),
+dob:valueOf("spouseDob"),
+age:valueOf("spouseAge"),
+nationality:valueOf("spouseNationality"),
+yearJoined:valueOf("spouseYearJoined"),
+phone:phoneValue("spousePhone"),
+altPhone:phoneValue("spouseAltPhone"),
+email:valueOf("spouseEmail"),
+certificateReceived:valueOf("spouseFamilyCourse")
+};
 }
 
-function checkDuplicate(){
-duplicateFound = false;
-}
-
-function showSuccess(){
-const verse = celebrationVerses[Math.floor(Math.random() * celebrationVerses.length)];
-document.getElementById("verseText").innerText = "“" + verse.text + "”";
-document.getElementById("verseRef").innerText = "— " + verse.ref;
-document.getElementById("mainApp").style.display = "none";
-document.getElementById("successScreen").style.display = "block";
-window.scrollTo({top:0,behavior:"smooth"});
-}
-
-document.getElementById("memberForm").addEventListener("submit",function(e){
-e.preventDefault();
-
-if(!validateStep(5)){return;}
-
-const payload = {
+function buildPayload(){
+return {
+submittedAt:new Date().toISOString(),
+source:"AgapeRegistration",
+head:{
+relationship:"Head",
 firstName:valueOf("firstName"),
 middleName:valueOf("middleName"),
 surname:valueOf("surname"),
 gender:valueOf("gender"),
 dob:valueOf("dob"),
+age:valueOf("age"),
 nationality:valueOf("nationality"),
+yearJoined:valueOf("yearJoined"),
 phone:phoneValue("phone"),
 altPhone:phoneValue("altPhone"),
 email:valueOf("email"),
+certificateReceived:valueOf("familyCourse")
+},
+household:{
 houseNumber:valueOf("houseNumber"),
 streetName:valueOf("streetName"),
 suburb:valueOf("suburb"),
@@ -1308,40 +1699,184 @@ town:valueOf("town"),
 province:valueOf("province"),
 maritalStatus:valueOf("maritalStatus"),
 maritalOther:valueOf("maritalOther"),
-dateJoined:valueOf("yearJoined"),
-baptized:"",
-department:"Main Church",
-welcomeCourse:valueOf("familyCourse"),
-membershipStatus:valueOf("familyCourse"),
-spouseFirstName:valueOf("spouseFirstName"),
-spouseSurname:valueOf("spouseSurname"),
-spousePhone:phoneValue("spousePhone"),
-contactName:valueOf("contactName"),
-relationship:valueOf("relationship"),
-contactNumber:phoneValue("contactNumber"),
-children:children.filter(function(child){return child;})
-};
-
-showError("Submitting registration, please wait...");
-
-fetch("https://script.google.com/macros/s/AKfycbz9lEzbPOGyYi7ZnxEMnyBHXHeas0BDKsyUYbwVndGW1S8yzwus6I81BpjxToJ19rfqgA/exec",{
-method:"POST",
-mode:"no-cors",
-headers:{
-"Content-Type":"text/plain;charset=utf-8"
+spouseAttends:spouseAttendValue(),
+emergencyContactName:valueOf("contactName"),
+emergencyRelationship:valueOf("relationship"),
+emergencyPhone:phoneValue("contactNumber")
 },
-body:JSON.stringify(payload)
-});
+spouse:spousePayload(),
+children:children.map(function(child){
+const age = childAgeNumber(child);
+return {
+relationship:"Child",
+firstName:child.firstName,
+surname:child.surname,
+gender:child.gender,
+dob:child.dob,
+age:child.age,
+attendsChurch:child.attendsChurch === "Yes",
+universityStudent:age !== null && age >= 17 && child.universityStudent === "Yes",
+phone:age !== null && age >= 13 && child.phone ? "+27" + child.phone : ""
+};
+})
+};
+}
 
+function reviewRow(label,value){
+return '<div class="review-row"><strong>' + escapeHtml(label) + '</strong><span>' + escapeHtml(value || "Not provided") + '</span></div>';
+}
+
+function personName(person){
+if(!person){return "";}
+return [person.firstName, person.middleName, person.surname].filter(Boolean).join(" ");
+}
+
+function childFamilyStatus(child){
+if(!child.attendsChurch){
+return "Not Attending Agap\u00e9";
+}
+
+if(child.universityStudent){
+return "University Student";
+}
+
+return "Church Attendee";
+}
+
+function buildReview(){
+const payload = buildPayload();
+const spouse = payload.spouse;
+let spouseHtml = reviewRow("Spouse","No spouse recorded");
+let childHtml = "";
+
+if(spouse){
+spouseHtml =
+reviewRow("Name",personName(spouse)) +
+reviewRow("Agap\u00e9 Connection",spouse.attendsChurch ? "Member of Agap\u00e9" : "Not part of Agap\u00e9") +
+reviewRow("Spouse Phone",spouse.phone) +
+reviewRow("Spouse Email",spouse.email);
+}
+
+if(payload.children.length){
+payload.children.forEach(function(child,index){
+childHtml += reviewRow("Child " + (index + 1), personName(child));
+childHtml += reviewRow("Age", child.age ? child.age + " years old" : "");
+childHtml += reviewRow("Connection", childFamilyStatus(child));
+});
+}else{
+childHtml = reviewRow("Children","No children added");
+}
+
+document.getElementById("reviewArea").innerHTML =
+'<div class="review-box"><div class="review-head"><span>Family Summary</span><button type="button" class="edit-review-btn" onclick="editReviewStep(2)">Edit</button></div><div class="review-body">' +
+reviewRow("Name",personName(payload.head)) +
+reviewRow("Address",valueOf("houseNumber") + " " + valueOf("streetName") + ", " + valueOf("suburb") + ", " + valueOf("town") + ", " + valueOf("province")) +
+reviewRow("Marital Status",valueOf("maritalStatus") === "Other" ? valueOf("maritalOther") : valueOf("maritalStatus")) +
+reviewRow("Emergency Contact",valueOf("contactName") + ", " + valueOf("relationship") + ", " + phoneValue("contactNumber")) +
+'</div></div>' +
+'<div class="review-box"><div class="review-head"><span>Your Information</span><button type="button" class="edit-review-btn" onclick="editReviewStep(0)">Edit</button></div><div class="review-body">' +
+reviewRow("Name",personName(payload.head)) +
+reviewRow("Gender",payload.head.gender) +
+reviewRow("Date Of Birth",payload.head.dob) +
+reviewRow("Age",payload.head.age) +
+reviewRow("Nationality",payload.head.nationality) +
+reviewRow("Year Joined",payload.head.yearJoined) +
+reviewRow("Phone",payload.head.phone) +
+reviewRow("Alternative Phone",payload.head.altPhone) +
+reviewRow("Email",payload.head.email) +
+reviewRow("Membership Certificate",payload.head.certificateReceived) +
+'</div></div>' +
+'<div class="review-box"><div class="review-head"><span>Spouse</span><button type="button" class="edit-review-btn" onclick="editReviewStep(3)">Edit</button></div><div class="review-body">' +
+spouseHtml +
+'</div></div>' +
+'<div class="review-box"><div class="review-head"><span>Children</span><button type="button" class="edit-review-btn" onclick="editReviewStep(4)">Edit</button></div><div class="review-body">' +
+childHtml +
+'</div></div>';
+}
+
+async function checkDuplicate(){
+duplicateFound = false;
+const notice = document.getElementById("duplicateNotice");
+notice.style.display = "none";
+notice.className = "notice";
+
+const phone = phoneValue("phone");
+const email = valueOf("email");
+if(!phone && !email){return;}
+if(LOCAL_PREVIEW){return;}
+
+try{
+const response = await fetch(APPS_SCRIPT_URL,{
+method:"POST",
+headers:{"Content-Type":"text/plain;charset=utf-8"},
+body:JSON.stringify({action:"validateDuplicate",phone:phone,email:email})
+});
+const result = await response.json();
+duplicateFound = !!result.duplicate;
+notice.style.display = "block";
+notice.className = "notice " + (duplicateFound ? "duplicate-bad" : "duplicate-ok");
+notice.innerText = duplicateFound ? "This phone number or email is already registered." : "No duplicate registration found.";
+}catch(error){
+duplicateFound = false;
+}
+}
+
+function setSubmitting(isSubmitting){
+const button = document.getElementById("submitButton");
+button.disabled = isSubmitting;
+button.innerText = isSubmitting ? "Submitting..." : "Submit Registration";
+}
+
+function showSuccess(result){
+const verse = celebrationVerses[Math.floor(Math.random() * celebrationVerses.length)];
+document.getElementById("verseText").innerText = '"' + verse.text + '"';
+document.getElementById("verseRef").innerText = verse.ref;
+document.getElementById("successMessage").innerText = "Your information has been received successfully.";
+document.getElementById("mainApp").style.display = "none";
+document.getElementById("successScreen").style.display = "block";
+window.scrollTo({top:0,behavior:"smooth"});
+}
+
+document.getElementById("memberForm").addEventListener("submit",async function(e){
+e.preventDefault();
+
+if(!validateStep(5)){return;}
+
+const payload = buildPayload();
+setSubmitting(true);
+showError(LOCAL_PREVIEW ? "Preview mode: no data will be sent." : "Submitting registration, please wait...");
+
+try{
+if(LOCAL_PREVIEW){
 setTimeout(function(){
 clearError();
-showSuccess();
-},2500);
+showSuccess({householdId:"HH000000"});
+setSubmitting(false);
+},900);
+return;
+}
+
+const response = await fetch(APPS_SCRIPT_URL,{
+method:"POST",
+headers:{"Content-Type":"text/plain;charset=utf-8"},
+body:JSON.stringify({action:"submitRegistration",payload:payload})
+});
+const result = await response.json();
+if(!result.ok){
+throw new Error(result.message || "Submission failed. Please try again.");
+}
+clearError();
+showSuccess(result);
+}catch(error){
+showError(error.message || "Submission failed. Please try again.");
+setSubmitting(false);
+}
 });
 
 setupYears();
 setupDobPicker();
 handleMaritalStatusChange();
+renderChildren();
 updateUI();
 </script>
 
