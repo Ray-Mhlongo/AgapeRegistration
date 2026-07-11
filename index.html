@@ -988,7 +988,7 @@ flex:0 1 275px;
 <div class="form-page" data-page="4">
 <p class="step-title">Step 5 of 6</p>
 <h2 class="section-title">Children</h2>
-<p class="helper">Add children who belong to your family. Adult children who are not full time students must complete their own registration.</p>
+<p class="helper">Add children who belong to your family. Members aged 21 and older who are not studying full time at a university or college are required to update or complete their own Registration Form.</p>
 
 <button type="button" class="btn-primary" onclick="addChild()">Add a Child</button>
 <div id="childrenContainer"></div>
@@ -1056,6 +1056,10 @@ flex:0 1 275px;
 const APPS_SCRIPT_URL = window.AGAPE_REGISTRATION_ENDPOINT || "https://script.google.com/macros/s/AKfycbz9lEzbPOGyYi7ZnxEMnyBHXHeas0BDKsyUYbwVndGW1S8yzwus6I81BpjxToJ19rfqgA/exec";
 const LOCAL_PREVIEW = location.protocol === "file:" || location.hostname === "localhost" || location.hostname === "127.0.0.1";
 const STEP_COUNT = 6;
+const CHILD_PHONE_MIN_AGE = 13;
+const UNIVERSITY_STUDENT_QUESTION_MIN_AGE = 20;
+const INDEPENDENT_REGISTRATION_MIN_AGE = 21;
+const INDEPENDENT_REGISTRATION_MESSAGE = "Members aged 21 and older who are not studying full time at a university or college are required to update or complete their own Registration Form.";
 
 let currentStep = 0;
 let children = [];
@@ -1515,11 +1519,11 @@ const child = children[index];
 if(!child){return;}
 const age = childAgeNumber(child);
 
-if(age === null || age < 13){
+if(age === null || age < CHILD_PHONE_MIN_AGE){
 child.phone = "";
 }
 
-if(age === null || age < 17){
+if(age === null || age < UNIVERSITY_STUDENT_QUESTION_MIN_AGE){
 child.universityStudent = "";
 }
 }
@@ -1531,7 +1535,7 @@ if(!wrap || !children[index]){return;}
 const child = children[index];
 const age = childAgeNumber(child);
 
-if(age === null || age < 13){
+if(age === null || age < CHILD_PHONE_MIN_AGE){
 child.phone = "";
 wrap.innerHTML = "";
 return;
@@ -1559,13 +1563,13 @@ wrap.innerHTML = child.attendsChurch === "No" ? '<div class="notice">This child 
 return;
 }
 
-if(age === null || age < 17){
+if(age === null || age < UNIVERSITY_STUDENT_QUESTION_MIN_AGE){
 child.universityStudent = "";
 wrap.innerHTML = "";
 return;
 }
 
-const blocked = age >= 18 && child.universityStudent === "No";
+const blocked = age >= INDEPENDENT_REGISTRATION_MIN_AGE && child.universityStudent === "No";
 wrap.innerHTML =
 '<div class="field">' +
 '<label>Is this child currently studying full time at a university or college? <span class="required">*</span></label>' +
@@ -1575,7 +1579,7 @@ wrap.innerHTML =
 '<option value="No" ' + (child.universityStudent === "No" ? "selected" : "") + '>No</option>' +
 '</select>' +
 '</div>' +
-(blocked ? '<div class="notice warning">Members aged eighteen and older who are not full time university students must complete their own membership registration.</div>' : "");
+(blocked ? '<div class="notice warning">' + INDEPENDENT_REGISTRATION_MESSAGE + '</div>' : "");
 }
 
 function validateChildren(){
@@ -1588,7 +1592,7 @@ return false;
 
 if(child.attendsChurch === "Yes"){
 const age = childAgeNumber(child);
-if(age !== null && age < 17){
+if(age === null || age < UNIVERSITY_STUDENT_QUESTION_MIN_AGE){
 continue;
 }
 
@@ -1597,8 +1601,8 @@ showError("Please answer the university student question for Child " + (i + 1) +
 return false;
 }
 
-if(age >= 18 && child.universityStudent === "No"){
-showError("Child " + (i + 1) + " is eighteen or older and not a full time university student. They must complete their own membership registration.");
+if(age >= INDEPENDENT_REGISTRATION_MIN_AGE && child.universityStudent === "No"){
+showError(INDEPENDENT_REGISTRATION_MESSAGE);
 return false;
 }
 }
@@ -1705,8 +1709,8 @@ gender:child.gender,
 dob:child.dob,
 age:child.age,
 attendsChurch:child.attendsChurch === "Yes",
-universityStudent:age !== null && age >= 17 && child.universityStudent === "Yes",
-phone:age !== null && age >= 13 && child.phone ? "+27" + child.phone : ""
+universityStudent:age !== null && age >= UNIVERSITY_STUDENT_QUESTION_MIN_AGE && child.universityStudent === "Yes",
+phone:age !== null && age >= CHILD_PHONE_MIN_AGE && child.phone ? "+27" + child.phone : ""
 };
 })
 };
