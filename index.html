@@ -1726,6 +1726,51 @@ phone:age !== null && age >= 13 && child.phone ? "+27" + child.phone : ""
 };
 }
 
+function buildLegacySubmissionPayload(payload){
+const primaryMember = payload.primaryMember || {};
+const household = payload.household || {};
+const spouse = payload.spouse || {};
+
+return {
+firstName:primaryMember.firstName || "",
+middleName:primaryMember.middleName || "",
+surname:primaryMember.surname || "",
+gender:primaryMember.gender || "",
+dob:primaryMember.dob || "",
+nationality:primaryMember.nationality || "",
+phone:primaryMember.phone || "",
+altPhone:primaryMember.altPhone || "",
+email:primaryMember.email || "",
+houseNumber:household.houseNumber || "",
+streetName:household.streetName || "",
+suburb:household.suburb || "",
+town:household.town || "",
+province:household.province || "",
+maritalStatus:household.maritalStatus || "",
+maritalOther:household.maritalOther || "",
+dateJoined:primaryMember.yearJoined || "",
+baptized:"",
+department:"Main Church",
+welcomeCourse:primaryMember.certificateReceived || "",
+membershipStatus:primaryMember.certificateReceived || "",
+spouseFirstName:spouse.firstName || "",
+spouseSurname:spouse.surname || "",
+spousePhone:spouse.phone || "",
+contactName:household.emergencyContactName || "",
+relationship:household.emergencyRelationship || "",
+contactNumber:household.emergencyPhone || "",
+children:(payload.children || []).filter(function(child){return child;}).map(function(child){
+return {
+firstName:child.firstName || "",
+surname:child.surname || "",
+dob:child.dob || "",
+age:child.age || "",
+gender:child.gender || ""
+};
+})
+};
+}
+
 function reviewRow(label,value){
 return '<div class="review-row"><strong>' + escapeHtml(label) + '</strong><span>' + escapeHtml(value || "Not provided") + '</span></div>';
 }
@@ -1804,37 +1849,7 @@ duplicateFound = false;
 const notice = document.getElementById("duplicateNotice");
 notice.style.display = "none";
 notice.className = "notice";
-
-const phone = phoneValue("phone");
-const email = valueOf("email");
-const firstName = valueOf("firstName");
-const surname = valueOf("surname");
-const dob = valueOf("dob");
-if(!phone && !email && (!firstName || !surname || !dob)){return;}
-if(LOCAL_PREVIEW){return;}
-
-try{
-const response = await fetch(APPS_SCRIPT_URL,{
-method:"POST",
-headers:{"Content-Type":"text/plain;charset=utf-8"},
-body:JSON.stringify({action:"validateDuplicate",phone:phone,email:email,firstName:firstName,surname:surname,dob:dob})
-});
-const result = await response.json();
-duplicateFound = !!result.duplicate;
-notice.style.display = "block";
-if(duplicateFound){
-notice.className = "notice duplicate-bad";
-notice.innerText = "This phone number or email is already registered.";
-}else if(result.possibleDuplicate){
-notice.className = "notice warning";
-notice.innerText = "A similar registration may already exist. You can continue, and an administrator will review it.";
-}else{
-notice.className = "notice duplicate-ok";
-notice.innerText = "No duplicate registration found.";
-}
-}catch(error){
-duplicateFound = false;
-}
+notice.innerText = "";
 }
 
 function setSubmitting(isSubmitting){
@@ -1853,12 +1868,12 @@ document.getElementById("successScreen").style.display = "block";
 window.scrollTo({top:0,behavior:"smooth"});
 }
 
-document.getElementById("memberForm").addEventListener("submit",async function(e){
+document.getElementById("memberForm").addEventListener("submit",function(e){
 e.preventDefault();
 
 if(!validateStep(5)){return;}
 
-const payload = buildPayload();
+const payload = buildLegacySubmissionPayload(buildPayload());
 setSubmitting(true);
 showError(LOCAL_PREVIEW ? "Preview mode: no data will be sent." : "Submitting registration, please wait...");
 
@@ -1872,17 +1887,17 @@ setSubmitting(false);
 return;
 }
 
-const response = await fetch(APPS_SCRIPT_URL,{
+fetch(APPS_SCRIPT_URL,{
 method:"POST",
+mode:"no-cors",
 headers:{"Content-Type":"text/plain;charset=utf-8"},
-body:JSON.stringify({action:"submitRegistration",payload:payload})
+body:JSON.stringify(payload)
 });
-const result = await response.json();
-if(!result.ok){
-throw new Error(result.message || "Submission failed. Please try again.");
-}
+setTimeout(function(){
 clearError();
-showSuccess(result);
+showSuccess({});
+setSubmitting(false);
+},2500);
 }catch(error){
 showError(error.message || "Submission failed. Please try again.");
 setSubmitting(false);
