@@ -658,7 +658,7 @@ flex:0 1 275px;
 
 <div class="field">
 <label>First Name <span class="required">*</span></label>
-<input id="firstName" required placeholder="Example: Thabo">
+<input id="firstName" required placeholder="Example: Thabo" onblur="checkDuplicate()">
 </div>
 
 <div class="field">
@@ -668,7 +668,7 @@ flex:0 1 275px;
 
 <div class="field">
 <label>Surname <span class="required">*</span></label>
-<input id="surname" required placeholder="Example: Mokoena">
+<input id="surname" required placeholder="Example: Mokoena" onblur="checkDuplicate()">
 </div>
 
 <div class="field">
@@ -889,7 +889,7 @@ flex:0 1 275px;
 </div>
 
 <div class="field">
-<label>Spouse Email Address <span class="required">*</span></label>
+<label>Spouse Email Address</label>
 <input type="email" id="externalSpouseEmail" placeholder="Example: name@gmail.com">
 </div>
 </div>
@@ -1177,6 +1177,8 @@ children[childIndex].age = "";
 clearHiddenChildFields(childIndex);
 renderChildAgeDetails(childIndex);
 renderChildAttendanceDetails(childIndex);
+}else if(dobId === "dob"){
+checkDuplicate();
 }
 return;
 }
@@ -1191,6 +1193,8 @@ children[childIndex].age = document.getElementById(ageId).value;
 clearHiddenChildFields(childIndex);
 renderChildAgeDetails(childIndex);
 renderChildAttendanceDetails(childIndex);
+}else if(dobId === "dob"){
+checkDuplicate();
 }
 }
 
@@ -1390,7 +1394,7 @@ return true;
 const attends = spouseAttendValue();
 
 if(attends === "No"){
-const fields = ["externalSpouseFirstName","externalSpouseSurname","externalSpousePhone","externalSpouseEmail"];
+const fields = ["externalSpouseFirstName","externalSpouseSurname","externalSpousePhone"];
 for(const id of fields){
 if(!valueOf(id)){
 document.getElementById(id).focus();
@@ -1676,8 +1680,8 @@ function buildPayload(){
 return {
 submittedAt:new Date().toISOString(),
 source:"AgapeRegistration",
-head:{
-relationship:"Head",
+primaryMember:{
+relationship:"Primary Member",
 firstName:valueOf("firstName"),
 middleName:valueOf("middleName"),
 surname:valueOf("surname"),
@@ -1745,6 +1749,7 @@ return "Church Attendee";
 
 function buildReview(){
 const payload = buildPayload();
+const primaryMember = payload.primaryMember;
 const spouse = payload.spouse;
 let spouseHtml = reviewRow("Spouse","No spouse recorded");
 let childHtml = "";
@@ -1769,22 +1774,22 @@ childHtml = reviewRow("Children","No children added");
 
 document.getElementById("reviewArea").innerHTML =
 '<div class="review-box"><div class="review-head"><span>Family Summary</span><button type="button" class="edit-review-btn" onclick="editReviewStep(2)">Edit</button></div><div class="review-body">' +
-reviewRow("Name",personName(payload.head)) +
+reviewRow("Name",personName(primaryMember)) +
 reviewRow("Address",valueOf("houseNumber") + " " + valueOf("streetName") + ", " + valueOf("suburb") + ", " + valueOf("town") + ", " + valueOf("province")) +
 reviewRow("Marital Status",valueOf("maritalStatus") === "Other" ? valueOf("maritalOther") : valueOf("maritalStatus")) +
 reviewRow("Emergency Contact",valueOf("contactName") + ", " + valueOf("relationship") + ", " + phoneValue("contactNumber")) +
 '</div></div>' +
 '<div class="review-box"><div class="review-head"><span>Your Information</span><button type="button" class="edit-review-btn" onclick="editReviewStep(0)">Edit</button></div><div class="review-body">' +
-reviewRow("Name",personName(payload.head)) +
-reviewRow("Gender",payload.head.gender) +
-reviewRow("Date Of Birth",payload.head.dob) +
-reviewRow("Age",payload.head.age) +
-reviewRow("Nationality",payload.head.nationality) +
-reviewRow("Year Joined",payload.head.yearJoined) +
-reviewRow("Phone",payload.head.phone) +
-reviewRow("Alternative Phone",payload.head.altPhone) +
-reviewRow("Email",payload.head.email) +
-reviewRow("Membership Certificate",payload.head.certificateReceived) +
+reviewRow("Name",personName(primaryMember)) +
+reviewRow("Gender",primaryMember.gender) +
+reviewRow("Date Of Birth",primaryMember.dob) +
+reviewRow("Age",primaryMember.age) +
+reviewRow("Nationality",primaryMember.nationality) +
+reviewRow("Year Joined",primaryMember.yearJoined) +
+reviewRow("Phone",primaryMember.phone) +
+reviewRow("Alternative Phone",primaryMember.altPhone) +
+reviewRow("Email",primaryMember.email) +
+reviewRow("Membership Certificate",primaryMember.certificateReceived) +
 '</div></div>' +
 '<div class="review-box"><div class="review-head"><span>Spouse</span><button type="button" class="edit-review-btn" onclick="editReviewStep(3)">Edit</button></div><div class="review-body">' +
 spouseHtml +
@@ -1802,20 +1807,31 @@ notice.className = "notice";
 
 const phone = phoneValue("phone");
 const email = valueOf("email");
-if(!phone && !email){return;}
+const firstName = valueOf("firstName");
+const surname = valueOf("surname");
+const dob = valueOf("dob");
+if(!phone && !email && (!firstName || !surname || !dob)){return;}
 if(LOCAL_PREVIEW){return;}
 
 try{
 const response = await fetch(APPS_SCRIPT_URL,{
 method:"POST",
 headers:{"Content-Type":"text/plain;charset=utf-8"},
-body:JSON.stringify({action:"validateDuplicate",phone:phone,email:email})
+body:JSON.stringify({action:"validateDuplicate",phone:phone,email:email,firstName:firstName,surname:surname,dob:dob})
 });
 const result = await response.json();
 duplicateFound = !!result.duplicate;
 notice.style.display = "block";
-notice.className = "notice " + (duplicateFound ? "duplicate-bad" : "duplicate-ok");
-notice.innerText = duplicateFound ? "This phone number or email is already registered." : "No duplicate registration found.";
+if(duplicateFound){
+notice.className = "notice duplicate-bad";
+notice.innerText = "This phone number or email is already registered.";
+}else if(result.possibleDuplicate){
+notice.className = "notice warning";
+notice.innerText = "A similar registration may already exist. You can continue, and an administrator will review it.";
+}else{
+notice.className = "notice duplicate-ok";
+notice.innerText = "No duplicate registration found.";
+}
 }catch(error){
 duplicateFound = false;
 }

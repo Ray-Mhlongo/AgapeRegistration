@@ -26,6 +26,9 @@ var SHEET_HEADERS = [
   "Certificate Received",
   "Attends Church",
   "Submission Timestamp",
+  "Registration Date",
+  "Possible Duplicate Warning",
+  "Possible Duplicate Matches",
   "Source",
   "Raw JSON"
 ];
@@ -33,7 +36,7 @@ var SHEET_HEADERS = [
 function doGet() {
   return HtmlService
     .createHtmlOutputFromFile("index")
-    .setTitle("Agape Household Registration")
+    .setTitle("Agape Family Registration")
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }
 
@@ -63,9 +66,13 @@ function doPost(e) {
 function submitRegistration(payload) {
   validatePayload_(payload);
 
+  var primaryMember = payload.primaryMember;
   var duplicate = validateDuplicate({
-    phone: payload.head.phone,
-    email: payload.head.email
+    phone: primaryMember.phone,
+    email: primaryMember.email,
+    firstName: primaryMember.firstName,
+    surname: primaryMember.surname,
+    dob: primaryMember.dob
   });
 
   if (duplicate.duplicate) {
@@ -77,7 +84,7 @@ function submitRegistration(payload) {
 
   try {
     planningResult = syncPlanningCenter(payload, householdId);
-    saveGoogleSheet(buildSheetRecords_(payload, householdId, planningResult));
+    saveGoogleSheet(buildSheetRecords_(payload, householdId, planningResult, duplicate));
   } catch (error) {
     if (planningResult && planningResult.rollbackState) {
       rollbackPartialFailures_(planningResult.rollbackState);
@@ -89,51 +96,54 @@ function submitRegistration(payload) {
     ok: true,
     householdId: householdId,
     planningCenterHouseholdId: planningResult.householdId || "",
+    possibleDuplicate: !!duplicate.possibleDuplicate,
+    possibleMatches: duplicate.possibleMatches || [],
     people: planningResult.people || {},
-    message: "Household registration submitted successfully."
+    message: "Registration submitted successfully."
   };
 }
 
 function syncPlanningCenter(payload, householdId) {
   var rollbackState = {
-    householdId: "",
-    personIds: []
+    createdHouseholdId: "",
+    createdPersonIds: [],
+    createdMemberships: []
   };
 
   try {
     var people = {};
-    var head = createPerson(payload.head, {
-      householdId: householdId,
-      relationship: "Head",
+    var personSequence = 1;
+    var primaryMember = createOrUpdatePerson_(payload.primaryMember, {
+      remoteId: buildRemoteId_(householdId, personSequence),
+      relationship: "Primary Member",
       child: false,
       universityStudent: false
-    });
-    rollbackState.personIds.push(head.id);
-    people.head = {
-      id: head.id,
-      created: true
-    };
+    }, rollbackState);
 
-    var household = createHousehold({
+    people.primaryMember = planningPersonSummary_(primaryMember);
+
+    var household = findReusableHousehold_(primaryMember.id) || createHousehold_({
       name: buildHouseholdName_(payload),
-      primaryContactPersonId: head.id,
-      people: [head.id]
+      primaryContactPersonId: primaryMember.id,
+      people: [primaryMember.id]
     });
-    rollbackState.householdId = household.id;
+
+    if (household.created) {
+      rollbackState.createdHouseholdId = household.id;
+    }
+
+    ensureHouseholdMember_(household.id, primaryMember.id, householdRoleForRelationship_("Primary Member"), rollbackState);
 
     if (payload.spouse && payload.spouse.attendsChurch) {
-      var spouse = createPerson(payload.spouse, {
-        householdId: householdId,
+      personSequence++;
+      var spouse = createOrUpdatePerson_(payload.spouse, {
+        remoteId: buildRemoteId_(householdId, personSequence),
         relationship: "Spouse",
         child: false,
         universityStudent: false
-      });
-      rollbackState.personIds.push(spouse.id);
-      addHouseholdMember(household.id, spouse.id, "adult");
-      people.spouse = {
-        id: spouse.id,
-        created: true
-      };
+      }, rollbackState);
+      ensureHouseholdMember_(household.id, spouse.id, householdRoleForRelationship_("Spouse"), rollbackState);
+      people.spouse = planningPersonSummary_(spouse);
     }
 
     (payload.children || []).forEach(function(child, index) {
@@ -141,19 +151,16 @@ function syncPlanningCenter(payload, householdId) {
         return;
       }
 
-      var createdChild = createPerson(child, {
-        householdId: householdId,
+      personSequence++;
+      var createdChild = createOrUpdatePerson_(child, {
+        remoteId: buildRemoteId_(householdId, personSequence),
         relationship: "Child",
         child: Number(child.age) < 18,
         universityStudent: !!child.universityStudent
-      });
-      rollbackState.personIds.push(createdChild.id);
-      addHouseholdMember(household.id, createdChild.id, "child_or_dependent");
-      people["child_" + index] = {
-        id: createdChild.id,
-        created: true,
-        universityStudent: !!child.universityStudent
-      };
+      }, rollbackState);
+      ensureHouseholdMember_(household.id, createdChild.id, householdRoleForRelationship_("Child"), rollbackState);
+      people["child_" + index] = planningPersonSummary_(createdChild);
+      people["child_" + index].universityStudent = !!child.universityStudent;
     });
 
     return {
@@ -167,18 +174,125 @@ function syncPlanningCenter(payload, householdId) {
   }
 }
 
-function createPerson(person, options) {
-  var attributes = compactObject_({
+function createOrUpdatePerson_(person, options, rollbackState) {
+  var existing = findPlanningCenterPerson_(person);
+  var attributes = personAttributes_(person, options);
+  var personId;
+
+  if (existing) {
+    personId = existing.id;
+    updatePerson_(personId, attributes);
+  } else {
+    var created = createPerson_(attributes);
+    personId = created.id;
+    rollbackState.createdPersonIds.push(personId);
+  }
+
+  if (person.phone) {
+    ensurePhoneNumber_(personId, person.phone, true);
+  }
+
+  if (person.altPhone) {
+    ensurePhoneNumber_(personId, person.altPhone, false);
+  }
+
+  if (person.email) {
+    ensureEmail_(personId, person.email);
+  }
+
+  if (options.universityStudent) {
+    markUniversityStudent_(personId);
+  }
+
+  return {
+    id: personId,
+    created: !existing,
+    matched: !!existing,
+    updated: !!existing
+  };
+}
+
+function personAttributes_(person, options) {
+  return compactObject_({
     first_name: person.firstName,
     middle_name: person.middleName,
     last_name: person.surname,
     gender: person.gender,
     birthdate: person.dob,
     child: !!options.child,
-    remote_id: options.householdId + "-" + options.relationship + "-" + person.firstName + "-" + person.surname,
+    remote_id: options.remoteId,
     medical_notes: options.universityStudent ? "University Student" : ""
   });
+}
 
+function findPlanningCenterPerson_(person) {
+  if (!person) {
+    return null;
+  }
+
+  var phone = normalizePhone_(person.phone || person.altPhone || "");
+  if (phone) {
+    var phoneMatches = searchPeople_({
+      "where[search_phone_number_e164]": phone,
+      per_page: 25
+    });
+
+    if (!phoneMatches.length) {
+      phoneMatches = searchPeople_({
+        "where[search_phone_number]": phone.replace(/\D/g, ""),
+        per_page: 25
+      });
+    }
+
+    if (phoneMatches.length) {
+      return phoneMatches[0];
+    }
+  }
+
+  var email = String(person.email || "").trim().toLowerCase();
+  if (email) {
+    var emailMatches = searchPeople_({
+      "where[search_name_or_email]": email,
+      per_page: 25
+    });
+
+    if (emailMatches.length) {
+      return emailMatches[0];
+    }
+  }
+
+  if (person.firstName && person.surname && person.dob) {
+    var nameDobMatches = searchPeople_({
+      "where[first_name]": person.firstName,
+      "where[last_name]": person.surname,
+      "where[birthdate]": normalizeDateValue_(person.dob),
+      per_page: 25
+    });
+
+    for (var i = 0; i < nameDobMatches.length; i++) {
+      if (personDataMatchesNameDob_(nameDobMatches[i], person)) {
+        return nameDobMatches[i];
+      }
+    }
+  }
+
+  return null;
+}
+
+function personDataMatchesNameDob_(personData, person) {
+  var attributes = personData.attributes || {};
+
+  return normalizeName_(attributes.first_name) === normalizeName_(person.firstName) &&
+    normalizeName_(attributes.last_name) === normalizeName_(person.surname) &&
+    normalizeDateValue_(attributes.birthdate) === normalizeDateValue_(person.dob);
+}
+
+function searchPeople_(params) {
+  var response = pcoRequest_("get", "/people/v2/people", null, params);
+  return response.data || [];
+}
+
+function createPerson_(attributes) {
   var response = pcoRequest_("post", "/people/v2/people", {
     data: {
       type: "Person",
@@ -191,41 +305,13 @@ function createPerson(person, options) {
     throw new Error("Planning Center did not return a person ID.");
   }
 
-  if (person.phone) {
-    createRelationship("phone", personId, {
-      number: normalizePhone_(person.phone),
-      location: "Mobile",
-      primary: true
-    });
-  }
-
-  if (person.altPhone) {
-    createRelationship("phone", personId, {
-      number: normalizePhone_(person.altPhone),
-      location: "Mobile",
-      primary: false
-    });
-  }
-
-  if (person.email) {
-    createRelationship("email", personId, {
-      address: person.email,
-      location: "Home",
-      primary: true
-    });
-  }
-
-  if (options.universityStudent) {
-    markUniversityStudent_(personId);
-  }
-
   return {
     id: personId,
     raw: response
   };
 }
 
-function updatePerson(personId, attributes) {
+function updatePerson_(personId, attributes) {
   return pcoRequest_("patch", "/people/v2/people/" + encodeURIComponent(personId), {
     data: {
       type: "Person",
@@ -235,7 +321,57 @@ function updatePerson(personId, attributes) {
   });
 }
 
-function createRelationship(type, personId, attributes) {
+function ensurePhoneNumber_(personId, phone, primary) {
+  var normalized = normalizePhone_(phone);
+  if (!normalized) {
+    return null;
+  }
+
+  var existing = listPersonRelationships_(personId, "phone_numbers");
+  for (var i = 0; i < existing.length; i++) {
+    var attributes = existing[i].attributes || {};
+    if (normalizePhone_(attributes.number) === normalized) {
+      return existing[i];
+    }
+  }
+
+  return createRelationship_("phone", personId, {
+    number: normalized,
+    location: "Mobile",
+    primary: !!primary
+  });
+}
+
+function ensureEmail_(personId, email) {
+  var normalized = String(email || "").trim().toLowerCase();
+  if (!normalized) {
+    return null;
+  }
+
+  var existing = listPersonRelationships_(personId, "emails");
+  for (var i = 0; i < existing.length; i++) {
+    var attributes = existing[i].attributes || {};
+    if (String(attributes.address || "").trim().toLowerCase() === normalized) {
+      return existing[i];
+    }
+  }
+
+  return createRelationship_("email", personId, {
+    address: normalized,
+    location: "Home",
+    primary: true
+  });
+}
+
+function listPersonRelationships_(personId, relationshipPath) {
+  var response = pcoRequest_("get", "/people/v2/people/" + encodeURIComponent(personId) + "/" + relationshipPath, null, {
+    per_page: 100
+  });
+
+  return response.data || [];
+}
+
+function createRelationship_(type, personId, attributes) {
   if (type === "phone") {
     return pcoRequest_("post", "/people/v2/people/" + encodeURIComponent(personId) + "/phone_numbers", {
       data: {
@@ -257,7 +393,29 @@ function createRelationship(type, personId, attributes) {
   throw new Error("Unsupported Planning Center relationship type.");
 }
 
-function createHousehold(household) {
+function findReusableHousehold_(primaryMemberPersonId) {
+  var households = getPersonHouseholds_(primaryMemberPersonId);
+
+  if (!households.length) {
+    return null;
+  }
+
+  return {
+    id: households[0].id,
+    created: false,
+    raw: households[0]
+  };
+}
+
+function getPersonHouseholds_(personId) {
+  var response = pcoRequest_("get", "/people/v2/people/" + encodeURIComponent(personId) + "/households", null, {
+    per_page: 100
+  });
+
+  return response.data || [];
+}
+
+function createHousehold_(household) {
   var peopleRelationships = household.people.map(function(personId) {
     return {
       type: "Person",
@@ -292,12 +450,60 @@ function createHousehold(household) {
 
   return {
     id: householdId,
+    created: true,
     raw: response
   };
 }
 
-function addHouseholdMember(householdId, personId, householdRole) {
-  return pcoRequest_("post", "/people/v2/households/" + encodeURIComponent(householdId) + "/household_memberships", {
+function ensureHouseholdMember_(householdId, personId, householdRole, rollbackState) {
+  var memberships = listHouseholdMemberships_(householdId);
+  var existing = findHouseholdMembershipForPerson_(memberships, personId);
+
+  if (existing) {
+    updateHouseholdMembership_(householdId, existing.id, householdRole);
+    return {
+      id: existing.id,
+      created: false
+    };
+  }
+
+  var membership = createHouseholdMembership_(householdId, personId, householdRole);
+  rollbackState.createdMemberships.push({
+    householdId: householdId,
+    membershipId: membership.id
+  });
+
+  return {
+    id: membership.id,
+    created: true
+  };
+}
+
+function listHouseholdMemberships_(householdId) {
+  var response = pcoRequest_("get", "/people/v2/households/" + encodeURIComponent(householdId) + "/household_memberships", null, {
+    include: "person",
+    per_page: 100
+  });
+
+  return response.data || [];
+}
+
+function findHouseholdMembershipForPerson_(memberships, personId) {
+  for (var i = 0; i < memberships.length; i++) {
+    var personRelationship = memberships[i].relationships &&
+      memberships[i].relationships.person &&
+      memberships[i].relationships.person.data;
+
+    if (personRelationship && String(personRelationship.id) === String(personId)) {
+      return memberships[i];
+    }
+  }
+
+  return null;
+}
+
+function createHouseholdMembership_(householdId, personId, householdRole) {
+  var response = pcoRequest_("post", "/people/v2/households/" + encodeURIComponent(householdId) + "/household_memberships", {
     data: {
       type: "HouseholdMembership",
       attributes: {
@@ -314,6 +520,53 @@ function addHouseholdMember(householdId, personId, householdRole) {
       }
     }
   });
+
+  var membershipId = response.data && response.data.id;
+  if (!membershipId) {
+    throw new Error("Planning Center did not return a household membership ID.");
+  }
+
+  return {
+    id: membershipId,
+    raw: response
+  };
+}
+
+function updateHouseholdMembership_(householdId, membershipId, householdRole) {
+  return pcoRequest_("patch", "/people/v2/households/" + encodeURIComponent(householdId) + "/household_memberships/" + encodeURIComponent(membershipId), {
+    data: {
+      type: "HouseholdMembership",
+      id: String(membershipId),
+      attributes: {
+        household_role: householdRole,
+        pending: false
+      }
+    }
+  });
+}
+
+function householdRoleForRelationship_(relationship) {
+  // Planning Center currently limits household_role to adult,
+  // child_or_dependent, other_adult, or parent_guardian. Primary Member and
+  // Spouse map to adult; Child maps to child_or_dependent.
+  if (relationship === "Primary Member" || relationship === "Spouse") {
+    return "adult";
+  }
+
+  if (relationship === "Child") {
+    return "child_or_dependent";
+  }
+
+  return "other_adult";
+}
+
+function planningPersonSummary_(result) {
+  return {
+    id: result.id || "",
+    created: !!result.created,
+    matched: !!result.matched,
+    updated: !!result.updated
+  };
 }
 
 function saveGoogleSheet(records) {
@@ -324,25 +577,31 @@ function saveGoogleSheet(records) {
     return;
   }
 
+  var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
   var rows = records.map(function(record) {
-    return SHEET_HEADERS.map(function(header) {
+    return headers.map(function(header) {
       return record[header] || "";
     });
   });
 
-  sheet.getRange(sheet.getLastRow() + 1, 1, rows.length, SHEET_HEADERS.length).setValues(rows);
+  sheet.getRange(sheet.getLastRow() + 1, 1, rows.length, headers.length).setValues(rows);
 }
 
 function validateDuplicate(input) {
   var phone = normalizePhone_(input.phone || "");
   var email = String(input.email || "").trim().toLowerCase();
+  var firstName = normalizeName_(input.firstName || "");
+  var surname = normalizeName_(input.surname || "");
+  var dob = normalizeDateValue_(input.dob || "");
   var result = {
     ok: true,
     duplicate: false,
-    matches: []
+    possibleDuplicate: false,
+    matches: [],
+    possibleMatches: []
   };
 
-  if (!phone && !email) {
+  if (!phone && !email && (!firstName || !surname || !dob)) {
     return result;
   }
 
@@ -361,6 +620,7 @@ function validateDuplicate(input) {
   var relationshipColumn = headerMap.Relationship;
   var firstNameColumn = headerMap["First Name"];
   var surnameColumn = headerMap.Surname;
+  var dobColumn = headerMap["Date of Birth"];
 
   for (var rowIndex = 1; rowIndex < data.length; rowIndex++) {
     var row = data[rowIndex];
@@ -368,36 +628,58 @@ function validateDuplicate(input) {
     var rowEmail = String(row[emailColumn] || "").trim().toLowerCase();
     var phoneMatches = phone && rowPhone && rowPhone === phone;
     var emailMatches = email && rowEmail && rowEmail === email;
+    var matchSummary = {
+      householdId: row[householdColumn] || "",
+      relationship: row[relationshipColumn] || "",
+      name: [row[firstNameColumn] || "", row[surnameColumn] || ""].join(" ").trim()
+    };
 
     if (phoneMatches || emailMatches) {
       result.duplicate = true;
-      result.matches.push({
-        householdId: row[householdColumn] || "",
-        relationship: row[relationshipColumn] || "",
-        name: [row[firstNameColumn] || "", row[surnameColumn] || ""].join(" ").trim()
-      });
+      result.matches.push(matchSummary);
+      continue;
     }
+
+    if (!result.duplicate && firstName && surname && dob) {
+      var rowFirstName = normalizeName_(row[firstNameColumn] || "");
+      var rowSurname = normalizeName_(row[surnameColumn] || "");
+      var rowDob = normalizeDateValue_(row[dobColumn] || "");
+
+      if (rowFirstName === firstName && rowSurname === surname && rowDob === dob) {
+        result.possibleDuplicate = true;
+        result.possibleMatches.push(matchSummary);
+      }
+    }
+  }
+
+  if (result.duplicate) {
+    result.possibleDuplicate = false;
+    result.possibleMatches = [];
   }
 
   return result;
 }
 
-function buildSheetRecords_(payload, householdId, planningResult) {
+function buildSheetRecords_(payload, householdId, planningResult, duplicate) {
   var records = [];
   var rawJson = JSON.stringify(payload);
   var pcoHouseholdId = planningResult.householdId || "";
+  var duplicateWarning = !!(duplicate && duplicate.possibleDuplicate);
+  var duplicateMatches = buildDuplicateMatchSummary_(duplicate);
 
-  records.push(buildPersonRecord_(payload.head, {
+  records.push(buildPersonRecord_(payload.primaryMember, {
     householdId: householdId,
-    relationship: "Head",
+    relationship: "Primary Member",
     household: payload.household,
     pcoHouseholdId: pcoHouseholdId,
-    planningPerson: planningResult.people.head,
+    planningPerson: planningResult.people.primaryMember,
     externalSpouse: false,
     externalChild: false,
     universityStudent: false,
     attendsChurch: true,
     submittedAt: payload.submittedAt,
+    duplicateWarning: duplicateWarning,
+    duplicateMatches: duplicateMatches,
     source: payload.source,
     rawJson: rawJson
   }));
@@ -414,12 +696,15 @@ function buildSheetRecords_(payload, householdId, planningResult) {
       universityStudent: false,
       attendsChurch: !!payload.spouse.attendsChurch,
       submittedAt: payload.submittedAt,
+      duplicateWarning: duplicateWarning,
+      duplicateMatches: duplicateMatches,
       source: payload.source,
       rawJson: rawJson
     }));
   }
 
   (payload.children || []).forEach(function(child, index) {
+    var age = Number(child.age);
     records.push(buildPersonRecord_(child, {
       householdId: householdId,
       relationship: "Child",
@@ -428,9 +713,11 @@ function buildSheetRecords_(payload, householdId, planningResult) {
       planningPerson: planningResult.people["child_" + index],
       externalSpouse: false,
       externalChild: !child.attendsChurch,
-      universityStudent: !!child.universityStudent,
+      universityStudent: age >= 17 && !!child.universityStudent,
       attendsChurch: !!child.attendsChurch,
       submittedAt: payload.submittedAt,
+      duplicateWarning: duplicateWarning,
+      duplicateMatches: duplicateMatches,
       source: payload.source,
       rawJson: rawJson
     }));
@@ -442,6 +729,7 @@ function buildSheetRecords_(payload, householdId, planningResult) {
 function buildPersonRecord_(person, meta) {
   var household = meta.household || {};
   var planningPerson = meta.planningPerson || {};
+  var submittedAt = meta.submittedAt || new Date().toISOString();
 
   return {
     "Household ID": meta.householdId,
@@ -470,23 +758,38 @@ function buildPersonRecord_(person, meta) {
     "Planning Center Household ID": meta.pcoHouseholdId || "",
     "Certificate Received": person.certificateReceived || "",
     "Attends Church": yesNo_(meta.attendsChurch),
-    "Submission Timestamp": meta.submittedAt || new Date().toISOString(),
+    "Submission Timestamp": submittedAt,
+    "Registration Date": formatRegistrationDate_(submittedAt),
+    "Possible Duplicate Warning": yesNo_(meta.duplicateWarning),
+    "Possible Duplicate Matches": meta.duplicateMatches || "",
     "Source": meta.source || "",
     "Raw JSON": meta.rawJson || ""
   };
 }
 
+function buildDuplicateMatchSummary_(duplicate) {
+  var matches = duplicate && duplicate.possibleMatches ? duplicate.possibleMatches : [];
+
+  return matches.map(function(match) {
+    return [
+      match.householdId || "",
+      match.relationship || "",
+      match.name || ""
+    ].filter(Boolean).join(" - ");
+  }).join("; ");
+}
+
 function validatePayload_(payload) {
-  if (!payload || !payload.head || !payload.household) {
+  if (!payload || !payload.primaryMember || !payload.household) {
     throw new Error("Registration payload is incomplete.");
   }
 
-  requireFields_(payload.head, ["firstName", "surname", "gender", "dob", "phone", "certificateReceived"], "Head of household");
-  requireFields_(payload.household, ["houseNumber", "streetName", "town", "province", "maritalStatus", "emergencyContactName", "emergencyRelationship", "emergencyPhone"], "Household");
+  requireFields_(payload.primaryMember, ["firstName", "surname", "gender", "dob", "phone", "certificateReceived"], "Primary member");
+  requireFields_(payload.household, ["houseNumber", "streetName", "town", "province", "maritalStatus", "emergencyContactName", "emergencyRelationship", "emergencyPhone"], "Family");
 
   if (payload.household.maritalStatus === "Married") {
     if (!payload.household.spouseAttends) {
-      throw new Error("Spouse attendance answer is required.");
+      throw new Error("Spouse answer is required.");
     }
 
     if (!payload.spouse) {
@@ -496,15 +799,27 @@ function validatePayload_(payload) {
     if (payload.spouse.attendsChurch) {
       requireFields_(payload.spouse, ["firstName", "surname", "gender", "dob", "phone", "certificateReceived"], "Spouse");
     } else {
-      requireFields_(payload.spouse, ["firstName", "surname", "phone", "email"], "External spouse");
+      requireFields_(payload.spouse, ["firstName", "surname", "phone"], "External spouse");
     }
   }
 
   (payload.children || []).forEach(function(child, index) {
-    requireFields_(child, ["firstName", "surname", "gender", "dob"], "Child " + (index + 1));
+    requireFields_(child, ["firstName", "surname", "gender", "dob", "age"], "Child " + (index + 1));
 
-    if (child.attendsChurch && Number(child.age) >= 18 && !child.universityStudent) {
-      throw new Error("Adult children who are not full time university students must complete their own registration.");
+    if (typeof child.attendsChurch === "undefined" || child.attendsChurch === null || child.attendsChurch === "") {
+      throw new Error("Church attendance answer is required for Child " + (index + 1) + ".");
+    }
+
+    if (child.attendsChurch) {
+      var age = Number(child.age);
+
+      if (age >= 17 && child.universityStudent !== true && child.universityStudent !== false) {
+        throw new Error("University student answer is required for Child " + (index + 1) + ".");
+      }
+
+      if (age >= 18 && !child.universityStudent) {
+        throw new Error("Adult children who are not full time university students must complete their own registration.");
+      }
     }
   });
 }
@@ -580,7 +895,7 @@ function getSheet_() {
 }
 
 function ensureHeaders_(sheet) {
-  var lastColumn = Math.max(sheet.getLastColumn(), SHEET_HEADERS.length);
+  var lastColumn = Math.max(sheet.getLastColumn(), 1);
   var currentHeaders = sheet.getRange(1, 1, 1, lastColumn).getValues()[0];
   var hasAnyHeader = currentHeaders.some(function(value) {
     return !!value;
@@ -607,9 +922,9 @@ function ensureHeaders_(sheet) {
   }
 }
 
-function pcoRequest_(method, path, payload) {
+function pcoRequest_(method, path, payload, params) {
   var config = getPlanningCenterConfig_();
-  var url = config.baseUrl.replace(/\/$/, "") + path;
+  var url = config.baseUrl.replace(/\/$/, "") + path + queryString_(params);
   var options = {
     method: method,
     muteHttpExceptions: true,
@@ -634,6 +949,21 @@ function pcoRequest_(method, path, payload) {
   }
 
   return body;
+}
+
+function queryString_(params) {
+  var keys = Object.keys(params || {}).filter(function(key) {
+    var value = params[key];
+    return value !== "" && value !== null && typeof value !== "undefined";
+  });
+
+  if (!keys.length) {
+    return "";
+  }
+
+  return "?" + keys.map(function(key) {
+    return encodeURIComponent(key) + "=" + encodeURIComponent(params[key]);
+  }).join("&");
 }
 
 function getPlanningCenterConfig_() {
@@ -682,15 +1012,23 @@ function rollbackPartialFailures_(state) {
     return;
   }
 
-  if (state.householdId) {
+  (state.createdMemberships || []).reverse().forEach(function(membership) {
     try {
-      pcoRequest_("delete", "/people/v2/households/" + encodeURIComponent(state.householdId));
+      pcoRequest_("delete", "/people/v2/households/" + encodeURIComponent(membership.householdId) + "/household_memberships/" + encodeURIComponent(membership.membershipId));
+    } catch (error) {
+      console.warn(error);
+    }
+  });
+
+  if (state.createdHouseholdId) {
+    try {
+      pcoRequest_("delete", "/people/v2/households/" + encodeURIComponent(state.createdHouseholdId));
     } catch (error) {
       console.warn(error);
     }
   }
 
-  (state.personIds || []).reverse().forEach(function(personId) {
+  (state.createdPersonIds || []).reverse().forEach(function(personId) {
     try {
       pcoRequest_("delete", "/people/v2/people/" + encodeURIComponent(personId));
     } catch (error) {
@@ -700,7 +1038,12 @@ function rollbackPartialFailures_(state) {
 }
 
 function buildHouseholdName_(payload) {
-  return (payload.head.surname || payload.head.firstName || "Agape") + " Household";
+  var primaryMember = payload.primaryMember || {};
+  return (primaryMember.surname || primaryMember.firstName || "Agape") + " Family";
+}
+
+function buildRemoteId_(householdId, sequenceNumber) {
+  return householdId + "-P" + sequenceNumber;
 }
 
 function buildAddress_(household) {
@@ -725,6 +1068,43 @@ function normalizePhone_(phone) {
   }
 
   return value ? "+27" + value : "";
+}
+
+function normalizeName_(value) {
+  return String(value || "").trim().replace(/\s+/g, " ").toLowerCase();
+}
+
+function normalizeDateValue_(value) {
+  if (!value) {
+    return "";
+  }
+
+  if (Object.prototype.toString.call(value) === "[object Date]" && !isNaN(value.getTime())) {
+    return Utilities.formatDate(value, Session.getScriptTimeZone(), "yyyy-MM-dd");
+  }
+
+  var text = String(value).trim();
+  var isoMatch = text.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (isoMatch) {
+    return isoMatch[1] + "-" + isoMatch[2] + "-" + isoMatch[3];
+  }
+
+  var date = new Date(text);
+  if (!isNaN(date.getTime())) {
+    return Utilities.formatDate(date, Session.getScriptTimeZone(), "yyyy-MM-dd");
+  }
+
+  return text;
+}
+
+function formatRegistrationDate_(submittedAt) {
+  var date = submittedAt ? new Date(submittedAt) : new Date();
+
+  if (isNaN(date.getTime())) {
+    date = new Date();
+  }
+
+  return Utilities.formatDate(date, Session.getScriptTimeZone(), "yyyy-MM-dd");
 }
 
 function yesNo_(value) {
@@ -758,22 +1138,12 @@ function parseRequest_(e) {
   return JSON.parse(e.postData.contents);
 }
 
-function jsonResponse_(data) {
+function jsonResponse_(payload) {
   return ContentService
-    .createTextOutput(JSON.stringify(data))
+    .createTextOutput(JSON.stringify(payload))
     .setMimeType(ContentService.MimeType.JSON);
 }
 
 function userSafeErrorMessage_(error) {
-  var message = error && error.message ? String(error.message) : "";
-
-  if (message.indexOf("already registered") !== -1) {
-    return message;
-  }
-
-  if (message.indexOf("missing") !== -1 || message.indexOf("required") !== -1) {
-    return "Some required information is missing. Please review the form and try again.";
-  }
-
-  return "We could not complete the registration right now. Please try again or contact the church office.";
+  return error && error.message ? error.message : "Something went wrong. Please try again.";
 }
