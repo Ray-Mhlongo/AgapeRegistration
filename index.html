@@ -1058,7 +1058,6 @@ const LOCAL_PREVIEW = location.protocol === "file:" || location.hostname === "lo
 const STEP_COUNT = 6;
 
 let currentStep = 0;
-let returnToReview = false;
 let children = [];
 let duplicateFound = false;
 
@@ -1303,14 +1302,6 @@ return !!(element.offsetWidth || element.offsetHeight || element.getClientRects(
 function nextStep(){
 if(!validateStep(currentStep)){return;}
 
-if(returnToReview && currentStep < 5){
-currentStep = 5;
-returnToReview = false;
-updateUI();
-window.scrollTo({top:0,behavior:"smooth"});
-return;
-}
-
 if(currentStep < 5){
 currentStep++;
 updateUI();
@@ -1327,17 +1318,12 @@ window.scrollTo({top:0,behavior:"smooth"});
 }
 
 function editReviewStep(step){
-returnToReview = true;
 currentStep = step;
 updateUI();
 window.scrollTo({top:0,behavior:"smooth"});
 }
 
 function goToStep(step){
-if(currentStep === 5 && step < 5){
-returnToReview = true;
-}
-
 if(step <= currentStep){
 currentStep = step;
 updateUI();
